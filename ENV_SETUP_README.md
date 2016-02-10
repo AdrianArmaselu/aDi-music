@@ -40,5 +40,5 @@ You can ignore the following message. `==> default: dpkg-preconfigure: unable to
     pcs = multi_training.loadPieces("music")
     multi_training.trainPiece(m, pcs, 10000) #some errors shows up in this step, not sure why. someone need to look into the issue
     import main
-    mian.gen_adaptive(m,pcs,10,name="composition") #a midi file is generated but can not be opened
+    main.gen_adaptive(m,pcs,10,name="composition") #a midi file is generated but can not be opened
     ```
