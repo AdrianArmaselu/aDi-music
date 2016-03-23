@@ -7,7 +7,7 @@ import javax.sound.midi.ShortMessage;
  * Created by Adisor on 3/20/2016.
  */
 
-// Immutable
+// Immutable - except for duration
 public class MusicalNote {
 
     // pitch can be 0-127
@@ -17,7 +17,11 @@ public class MusicalNote {
     private final int velocity;
 
     // how long the note is played
-    private final double duration;
+    private double duration;
+
+    public MusicalNote(ShortMessage shortMidiMessage) {
+        this(shortMidiMessage.getData1(), shortMidiMessage.getData2(), 0);
+    }
 
     public MusicalNote(ShortMessage shortMidiMessage, double duration) {
         this(shortMidiMessage.getData1(), shortMidiMessage.getData2(), duration);
@@ -26,6 +30,10 @@ public class MusicalNote {
     public MusicalNote(int pitch, int velocity, double duration) {
         this.pitch = pitch;
         this.velocity = velocity;
+        this.duration = duration;
+    }
+
+    public void setDuration(double duration){
         this.duration = duration;
     }
 

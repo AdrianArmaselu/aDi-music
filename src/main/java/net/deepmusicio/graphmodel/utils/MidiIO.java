@@ -8,34 +8,38 @@ import javax.sound.midi.*;
 import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Adisor on 3/19/2016.
- *
+ * <p/>
  * Used http://stackoverflow.com/questions/3850688/reading-midi-files-in-java
  * Multiple types of midi files: https://forum.noteworthycomposer.com/?topic=4157.0
- *
- * TODO: KEEP TRACK OF TEMPO CHANGES
+ * Official Java Midi API: https://docs.oracle.com/javase/tutorial/sound/MIDI-seq-intro.html
+ * <p/>
  * TODO: SOME CHORDS HAVE SLIGHT DIFFERENCES IN TIMES BETWEEN NOTES
  * TODO: CAN USE CHANGES IN TEMPO FOR MODEL PREDICTION
  * TODO: PICK METAEVENTS FOR THE FINAL OUTPUT
- * TODO: COMPUTE DURATION IF TEMPO IS MPQ
  * TODO: Log midi file details : tracks, events, pitches, etc.
  * TODO: CONSIDER CHANGING CHANNELS OF TRACKS
+ * TODO: NOT SURE IF A PITCH CAN BE REPEATED TWICE, HOW DO YOU DETERMINE DURATION IF THE MESSAGE TO TURN IT OFF IS NOT THERE
+ *
+ * Notes:
+ * Tick Size depends on current tempo
  */
 
 public class MidiIO {
 
     private static final int DEFAULT_TYPE = 1;
     private Sequencer sequencer;
-    private List<SoundEvent> soundEvents;
+
     private MidiFileFormat midiFileFormat;
 
     public MidiIO(String midiFile) {
         openSequencer();
         setSequence(midiFile);
-        loadSoundEvents();
     }
 
     private void openSequencer() {
@@ -92,36 +96,7 @@ public class MidiIO {
         return true;
     }
 
-    private void loadSoundEvents() {
-        soundEvents = new ArrayList<>(); // can use the size of the track for initialization - speeds up
-        Sequence sequence = sequencer.getSequence();
-        for (Track track : sequence.getTracks())
-            processTrack(track);
-    }
-
-    private void processTrack(Track track){
-        for (int i = 0; i < track.size(); i++) {
-            MidiEvent midiEvent = track.get(i);
-            processEvent(midiEvent);
-        }
-    }
-
-    private void processEvent(MidiEvent midiEvent){
-        MidiMessage midiMessage = midiEvent.getMessage();
-        double duration = getDuration(midiEvent);
-        if (midiMessage instanceof ShortMessage) {
-
-            ShortMessage shortMessage = (ShortMessage) midiMessage;
-            int command = shortMessage.getCommand();
-            if(command == ShortMessage.NOTE_OFF);
-            MusicalNote musicalNote = new MusicalNote(shortMessage, duration);
-            SoundEvent soundEvent = new SoundEvent();
-            soundEvent.setNote(musicalNote);
-            soundEvents.add(soundEvent);
-        }
-    }
-
-    public boolean saveToFile(Sequence sequence, int type, File file){
+    public boolean saveToFile(Sequence sequence, int type, File file) {
         try {
             MidiSystem.write(sequence, type, file);
         } catch (IOException e) {
@@ -131,27 +106,105 @@ public class MidiIO {
         return true;
     }
 
-    private double getDuration(MidiEvent midiEvent){
-        long tick = midiEvent.getTick();
-        double tickSize = getMidiEventTickSize(midiEvent);
-        return tick * tickSize;
-    }
-
-    private double getMidiEventTickSize(MidiEvent midiEvent) {
-        double resolution = sequencer.getSequence().getResolution();
-        double tempo = getMidiEventTempoBPM(midiEvent);
-        double ticksPerSecond = resolution * (tempo / 60.0);
-        return 1.0 / ticksPerSecond;
-    }
-
-    private double getMidiEventTempoBPM(MidiEvent midiEvent) {
-        int tempoMPQ = MidiUtils.getTempoMPQ(midiEvent.getMessage());
-        return MidiUtils.convertTempo(tempoMPQ);
-    }
-
     public static void main(String[] args) {
         String midiFile = "music/Eminem/thewayiam.mid";
         MidiIO midiIO = new MidiIO(midiFile);
-//        midiIO.prototypeMethod1();
+    }
+
+    class SoundEventsExtractor {
+
+        // the key is the pitch
+        private Map<Integer, MidiEvent> playingEvents;
+        private List<SoundEvent> soundEventsSequence;
+        private Sequence sequence;
+
+        // always in BPM
+        private double currentBPMTempo;
+
+        // in microseconds or milliseconds, idk
+        private double currentTickSize;
+
+        SoundEventsExtractor(Sequence sequence) {
+            this.sequence = sequence;
+            playingEvents = new HashMap<>();
+            soundEventsSequence = new ArrayList<>(); // can use the size of the track for initialization - speeds up
+        }
+
+        private void extractSoundEvents() {
+            for (Track track : sequence.getTracks())
+                processTrack(track);
+        }
+
+        private void processTrack(Track track) {
+            long previousTick = 0;
+            for (int i = 0; i < track.size(); i++) {
+                MidiEvent midiEvent = track.get(i);
+                processEvent(midiEvent, previousTick);
+                previousTick = midiEvent.getTick();
+            }
+        }
+
+        private void processEvent(MidiEvent midiEvent, long previousTick) {
+            MidiMessage midiMessage = midiEvent.getMessage();
+            if(MidiUtils.isMetaTempo(midiMessage)) { // is it a change in tempo?
+                updateTempo(midiMessage);
+                updateTickSize();
+            }
+            if (midiMessage instanceof ShortMessage) {
+
+                ShortMessage shortMessage = (ShortMessage) midiMessage;
+
+                int pitch = shortMessage.getData1();
+                SoundEvent soundEvent;
+                if(isNotePlayStopped(shortMessage)){
+                    MidiEvent playingEvent = playingEvents.get(pitch);
+                    ShortMessage playingMessage = (ShortMessage) playingEvent.getMessage();
+                    MusicalNote musicalNote = new MusicalNote(playingMessage);
+                    double duration = computePreviousEventDuration(playingEvent, previousTick);
+                    musicalNote.setDuration(duration);
+                    playingEvents.remove(pitch);
+                    // stuck on considering chords
+
+                }else{
+                    MusicalNote musicalNote = new MusicalNote(shortMessage);
+                    boolean isNotePartOfAChord = duration == 0;
+                    if (isNotePartOfAChord) {
+                        soundEvent = getLastSoundEvent();
+                        soundEvent.addNote(musicalNote);
+                    } else {
+                        soundEvent = new SoundEvent();
+                        soundEvent.addNote(musicalNote);
+                        soundEventsSequence.add(soundEvent);
+                    }
+                    playingEvents.put(pitch, midiEvent);
+                }
+            }
+        }
+
+        private void updateTempo(MidiMessage midiMessage){
+            float mpqTempo = MidiUtils.getTempoMPQ(midiMessage);
+            currentBPMTempo = MidiUtils.convertTempo(mpqTempo);
+        }
+
+        private void updateTickSize(){
+            double resolution = sequencer.getSequence().getResolution();
+            double ticksPerSecond = resolution * (currentBPMTempo / 60.0);
+            currentTickSize =  1.0 / ticksPerSecond;
+        }
+
+        private double computePreviousEventDuration(MidiEvent currentMidiEvent, long previousTick){ // this is computed wrongly - should compute next note's tick - this one
+            long deltaTick = currentMidiEvent.getTick() - previousTick;
+            return deltaTick * currentTickSize;
+        }
+
+        private boolean isNotePlayStopped(ShortMessage shortMessage){
+            int command = shortMessage.getCommand();
+            int velocity = shortMessage.getData2();
+            return command == ShortMessage.NOTE_OFF || command == ShortMessage.NOTE_ON && velocity == 0;
+        }
+
+        private SoundEvent getLastSoundEvent() {
+            return soundEventsSequence.get(soundEventsSequence.size() - 1);
+        }
     }
 }

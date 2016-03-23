@@ -13,11 +13,18 @@ public class SoundEvent {
 
     private List<MusicalNote> notes;
 
+    public SoundEvent(MusicalNote note) {
+        this();
+        setNote(note);
+    }
+
     public SoundEvent() {
         notes = new ArrayList<>();
     }
 
-    public void addChordNote(MusicalNote note) {
+
+
+    public void addNote(MusicalNote note) {
         notes.add(note);
     }
 
