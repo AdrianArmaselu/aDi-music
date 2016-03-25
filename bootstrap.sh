@@ -18,3 +18,7 @@ sudo apt-get install python-sympy -y > /dev/null
 sudo apt-get install python-nose -y > /dev/null
 sudo pip install --upgrade --no-deps git+git://github.com/Theano/Theano.git
 sudo pip install theano-lstm python-midi
+#cd /vagrant/python-midi
+#python setup.py install
+#cd /home/vagrant
+pip install mido
