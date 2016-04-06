@@ -1,9 +1,7 @@
-from collections import OrderedDict
-
 from midi import NoteOnEvent, NoteOffEvent
 import midi
 
-from graphmodel.Objects import Note
+from graphmodel.Model import Note, OrganizedNotesTable, RunningNotesTable
 
 __author__ = 'Adisor'
 
@@ -20,55 +18,49 @@ def has_note_ended(event):
 
 def is_new_note(event):
     event_type = type(event)
-    return event_type == NoteOnEvent
+    return event_type == NoteOnEvent and event.velocity > 0
 
 
 class MidiIO:
     def __init__(self, midi_file):
-        self.midi_file = midi.read_midifile(midi_file)
-        self.mappings = {}
-        self.build_note_mappings()
+        self.data = midi.read_midifile(midi_file)
+        self.table = OrganizedNotesTable()
 
-    def build_note_mappings(self):
-        running_events = {}
-        cumulative_tick = 0
-        for track in self.midi_file:
-            for event in track:
-                if is_meta_event(event):
-                    continue
-                cumulative_tick += event.tick
-                if has_note_ended(event):
-                    self.map_sound_event(event, running_events, cumulative_tick)
-                if is_new_note(event):
-                    if event.channel not in running_events:
-                        running_events[event.pitch] = {}
-                    running_events[event.pitch][event.channel] = (cumulative_tick, event.tick, event)
+        # 0 - single multi-channel track
+        # 1 - one or more simultaneous tracks
+        # 2 - one ore more sequential tracks
+        self.format = self.data.format
+        self.__build_table__()
 
-        # sort by first key, the starting tick
-        self.mappings = OrderedDict(sorted(self.mappings.items(), key=lambda key: key[0]))
+    def __build_table__(self):
+        running_notes = RunningNotesTable()
+        timeline_tick = 0
+        for track in self.data:
+            timeline_tick = self.extract_track_notes(track, running_notes, timeline_tick)
 
-    def map_sound_event(self, ended_event, running_events, cumulative_tick):
-        (timeline_tick, wait_ticks, ended_event) = running_events[ended_event.pitch][ended_event.channel]
-        del running_events[ended_event.pitch][ended_event.channel]
-        ticks = cumulative_tick - timeline_tick
-        new_note = Note(timeline_tick, wait_ticks, ticks, ended_event.channel, ended_event.pitch, ended_event.velocity)
-        start_tick = new_note.start_tick
-        channel = new_note.channel
-        if start_tick not in self.mappings:
-            self.mappings[start_tick] = {}
-        if new_note.channel not in self.mappings[start_tick]:
-            self.mappings[start_tick][channel] = []
-        self.mappings[start_tick][channel].append(new_note)
+    def extract_track_notes(self, track, running_notes, timeline_tick):
+        last_note = None
+        for event in track:
+            if is_meta_event(event):
+                continue
+            timeline_tick += event.tick
+            if is_new_note(event):
+                note = Note(timeline_tick, 0, 0, event.channel, event.pitch, event.velocity)
+                running_notes.add(note)
+            if has_note_ended(event):
+                note = running_notes.get_note(event.channel, event.pitch)
+                note.duration_ticks = timeline_tick - note.timeline_tick
+                if last_note is not None:
+                    note.wait_ticks = timeline_tick - note.timeline_tick
+                self.table.add(note)
+                last_note = note
+        self.table.sort()
+        return timeline_tick
 
-    def print_events(self):
-        print self.midi_file
+    def __str__(self):
+        return str(self.data)
 
-    def print_mappings(self):
-        for tick in self.mappings:
-            for channel in self.mappings[tick]:
-                if len(self.mappings[tick][channel]) > 1:
-                    print "CHORD:"
-                else:
-                    print "NOTE:"
-                for note in self.mappings[tick][channel]:
-                    print note
+
+file = MidiIO("mary.mid")
+print file.table
+print file

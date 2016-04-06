@@ -68,3 +68,6 @@ boxes/*
 /website/.vagrant
 /website/build
 /vagrant-spec.config.rb
+
+#Idea
+/.idea/*

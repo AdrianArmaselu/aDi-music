@@ -1,19 +1,18 @@
+import Queue
 from random import randint
 
 import midi
 
 from graphmodel.MidiIO import MidiIO
-from graphmodel.Objects import SoundEvent, is_chord
-import pygame
+from graphmodel.Model import SoundEvent, is_chord, MusicalTranscript, OrderedFrames, RunningNotesTable
+from graphmodel.Policies import SoundEventTupleSelectionPolicy, ChannelMixingPolicy, MetadataResolutionPolicy
 
 __author__ = 'Adisor'
 
 # TODO: HANDLE CHANNELS IN A NEW WAY
 # TODO: HANDLE ALL CHANNELS
 # TODO: RESOLUTION METHOD FOR SONGS METADATAS
-# TODO: CONSIDER IGNORING CHANNEL
-# TODO: INCLUDE CHANNEL IN NGram model
-#
+# TODO: KEEP IN MIND DIFFERENT FILE FORMATS
 """
 TODO: Methods for increasing distribution counts:
     velocity tolerance
@@ -34,128 +33,81 @@ def has_notes(channel_notes):
 
 
 class NGram(object):
-    def __init__(self, mappings, n):
-        self.mappings = mappings
+    def __init__(self, musical_transcript, n, policies=Policies.default()):
+        self.music_transcript = musical_transcript
         self.n = n
-        self.tuple_distribution = {}
-        self.event_distribution = {}
-        self.tuples = {}
-        self.build()
+        self.policies = policies
+        self.frame_count = {}
+        self.event_count = {}
+        self.__build__()
 
-    def build(self):
-        tuples_being_built = []
+    def __build__(self):
+        frames = OrderedFrames(self.n)
 
-        for tick in self.mappings:
-            first_channel = self.mappings[tick][0]
-            print first_channel
-            # check to see if there are any notes
-            if has_notes(first_channel):
-                sound_event = SoundEvent(self.mappings[tick][0])
-                # create a new tuple
-                tuples_being_built.append(())
-                # append the notes to our list of tuples
-                for i in range(len(tuples_being_built)):
-                    tuples_being_built[i] += (sound_event,)
-                self.update_event_distribution(sound_event)
-            else:
-                continue
-            # if the first tuple has n elements, update its count, then remove it
-            first_tuple = tuples_being_built[0]
-            if len(first_tuple) >= self.n:
-                self.update_tuples(tuples_being_built)
+        if self.policies.channel_mixing_policy is ChannelMixingPolicy.NO_MIX:
+            for track in self.music_transcript.tracks:
+                for sound_event in self.music_transcript.get_sound_events(track):
+                    frames.add(sound_event)
 
-    # for logging purposes
-    def update_event_distribution(self, sound_event):
-        if sound_event not in self.event_distribution:
-            self.event_distribution[sound_event] = 1
-        else:
-            self.event_distribution[sound_event] += 1
+                # for logging purposes
+                if sound_event not in self.event_count:
+                    self.event_count[0][sound_event] = 1
+                else:
+                    self.event_count[0][sound_event] += 1
 
-    def update_tuples(self, tuples_being_built):
-        first_tuple = tuples_being_built[0]
-        tuples_id = hash(first_tuple)
-        self.tuples[tuples_id] = first_tuple
-        # if the tuple is new, then set its count to 1, otherwise update it
-        if tuples_id not in self.tuple_distribution:
-            self.tuple_distribution[tuples_id] = 1
-        else:
-            self.tuple_distribution[tuples_id] += 1
-        # del tuples_being_built[0]
-        tuples_being_built.pop(0)
+                # update the count with the first frame
+                if frames.is_first_frame_full():
+                    frame = frames.remove_first()
+                    if frame not in self.frame_count:
+                        self.frame_count[frame] = 1
+                    self.frame_count[frame] += 1
 
-    def __str__(self):
-        string = "NGram\n"
-        string += "SoundEventDistribution (unique events=%d)" % len(self.event_distribution) + "\n"
-        string += "SoundEvent: Count \n"
-        for key in self.event_distribution:
-            string += '{}: {}\n'.format(key, self.event_distribution[key])
-        string += ("TupleDistribution (unique tuples=%d)" % len(self.tuple_distribution)) + "\n"
-        string += "Tuple: Count \n"
-        string += self.to_string(self.tuple_distribution)
-        return string
-
-    def to_string(self, distribution):
-        string = ""
-        for key in distribution:
-            for t in self.tuples[key]:
-                string += '{}: {}\n'.format(t, distribution[key])
-        return string
+        # needs implementation
+        if self.policies.channel_mixing_policy is ChannelMixingPolicy.MIX:
+            pass
 
 
 class MusicGenerator(object):
-    def __init__(self, selection_policy, ngram, song_duration):
-        self.selection_policy = selection_policy
+    def __init__(self, ngram, song_duration, policies=Policies.default()):
         self.ngram = ngram
-        self.tuples = ngram.tuples
-        self.distribution = ngram.tuple_distribution
         # measured in number of notes
+        self.frame_count = ngram.frame_count
         self.song_duration = song_duration
+        self.policies = policies
         self.sequence = []
 
     def generate(self):
+
         # first tuple
-        event_tuple = self.tuples[self.tuples.keys()[0]]
+        frame = self.frame_count[self.frame_count.keys()[0]]
         for i in range(0, self.song_duration, 1):
-            for sound_event in event_tuple:
+            for sound_event in frame.sound_events:
                 self.sequence.append(sound_event)
-            event_tuple = self.next_tuple(event_tuple[-1])
+            frame = self.next_frame(frame.last())
             # we are only concerned about elements after the first one
-            event_tuple = event_tuple[1:]
+            frame = frame[1:]
 
-    # find the tuple with the maximum count that starts with last_sound_event
-    def next_tuple(self, last_sound_event):
-        max_count = 0
-        next_tuple = None
-        for key in self.distribution:
-            count = self.distribution[key]
-            t = self.tuples[key]
-            if self.tuples[key][0] == last_sound_event and (count > max_count):
-                max_count = count
-                next_tuple = t
+    # find the frame with the maximum count that starts with last_sound_event
+    def next_frame(self, last_sound_event):
+        next_frame = None
 
-
-        # in NLP, once this condition is reached, the program ends, but it works differently with music
-        if next_tuple is None:
-            if self.selection_policy is SelectionPolicy.RANDOM:
-                i = randint(0, len(self.tuples))
-                print "random int {}".format(i)
-                next_tuple = self.tuples[self.tuples.keys()[i]]
-            if self.selection_policy is SelectionPolicy.NEXT:
-                pass  # no implementation
-            if self.selection_policy is SelectionPolicy.BEFORE_HIGHEST_RANGE:
-                pass  # no implementation
-            if self.selection_policy is SelectionPolicy.AFTER_HIGHEST_RANGE:
-                pass  # no implementation
-
-        return next_tuple
+        if self.policies.selection_policy is SoundEventTupleSelectionPolicy.HIGHEST_COUNT:
+            max_count = 0
+            for frame in self.frame_count:
+                count = self.frame_count[frame]
+                if frame.first() == last_sound_event and (count > max_count):
+                    max_count = count
+                    next_frame = frame
+        return next_frame
 
     def to_midi_pattern(self):
+        running_notes = Queue.PriorityQueue()
         pattern = midi.Pattern()
         track = midi.Track()
         for sound_event in self.sequence:
             if is_chord(sound_event):
                 for note in sound_event.notes:
-                    on_event = midi.NoteOnEvent(channel=note.channel, tick=0, pitch=note.pitch,
+                    on_event = midi.NoteOnEvent(channel=note.channel, tick=note.wait_tick, pitch=note.pitch,
                                                 velocity=note.velocity)
                     track.append(on_event)
 
@@ -165,42 +117,38 @@ class MusicGenerator(object):
             print item
 
 
-class SelectionPolicy:
-    def __init__(self):
-        pass
+class Policies:
+    def __init__(self, selection_policy, metadata_resolution_policy, channel_mixing_policy):
+        self.selection_policy = selection_policy
+        self.metadata_resolution_policy = metadata_resolution_policy
+        self.channel_mixing_policy = channel_mixing_policy
 
-    RANDOM = 0
-    NEXT = 1
-    BEFORE_HIGHEST_RANGE = 2
-    AFTER_HIGHEST_RANGE = 3
-
-# Resolution Events: TimeSignatureEvent, TempoChangeEvent,
-class MetadataResolutionPolicy:
-    def __init__(self):
-        pass
-    FIRST_SONG_RESOLUTION = 0
-    SECOND_SONG_RESOLUTION = 1
-
+    @staticmethod
+    def default():
+        return Policies(SoundEventTupleSelectionPolicy.HIGHEST_COUNT, MetadataResolutionPolicy.FIRST_SONG_RESOLUTION,
+                        ChannelMixingPolicy.NO_MIX)
 
 # define properties
-midi_file = "mary.mid"
+midi_file = "bach.mid"
 number_of_notes = 2
-selection_policy = SelectionPolicy.RANDOM
 
 # load file
-midi_io = MidiIO(midi_file)
-midi_io.print_events()
+data = MidiIO(midi_file)
+print data
 
-# get the note mappings
-mappings = midi_io.mappings
-midi_io.print_mappings()
+# get the notes table
+table = data.table
+print data.table
 
-# construct the bigram
-bigram = NGram(mappings, 3)
-print bigram
+# build the musical transcript
+musical_transcript = MusicalTranscript(table)
+
+# construct the ngram
+ngram = NGram(musical_transcript, 3)
+print ngram
 
 # construct the generator and generate a sequence of sound events
-generator = MusicGenerator(selection_policy, bigram, number_of_notes)
+generator = MusicGenerator(ngram, number_of_notes)
 generator.generate()
 generator.print_sequence()
 
