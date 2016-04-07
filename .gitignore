@@ -71,3 +71,6 @@ boxes/*
 
 #Idea
 /.idea/*
+
+#Venv
+*venv/
