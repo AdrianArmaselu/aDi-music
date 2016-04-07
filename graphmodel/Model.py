@@ -1,4 +1,5 @@
 from collections import OrderedDict
+import sys
 
 __author__ = 'Adisor'
 
@@ -19,6 +20,8 @@ class Note(object):
         self.wait_ticks = wait_ticks
         # how long to play this note (not how many ticks until next note)
         self.duration_ticks = duration_ticks
+        self.previous_delta_ticks = 0
+        self.next_delta_ticks = 0
         self.channel = channel
         self.pitch = pitch
         self.velocity = velocity
@@ -39,8 +42,13 @@ class Note(object):
         return self.encode() == other.encode()
 
     def __str__(self):
-        return ("Note(start_tick:%d, wait_ticks:%d, ticks:%d, channel:%d, pitch:%d, velocity:%d)" %
-                (self.timeline_tick, self.wait_ticks, self.duration_ticks, self.channel, self.pitch, self.velocity))
+        return (
+            "Note(start_tick:%d, wait_ticks:%d, ticks:%d, "
+            "previous_delta_ticks:%d, next_delta_ticks:%d, "
+            "channel:%d, pitch:%d, velocity:%d)" %
+            (self.timeline_tick, self.wait_ticks, self.duration_ticks,
+             self.previous_delta_ticks, self.next_delta_ticks,
+             self.channel, self.pitch, self.velocity))
 
 
 class NotesTable(object):
@@ -92,6 +100,21 @@ class OrganizedNotesTable(NotesTable):
     # sort by timeline_tick
     def sort(self):
         self.table = OrderedDict(sorted(self.table.items(), key=lambda key: key[0]))
+
+    def update_delta_times(self):
+        previous_tick = 0
+        for tick in self.table:
+            # compute duration to previous note
+            for channel in self.table[tick]:
+                for pitch in self.table[tick][channel]:
+                    note = self.table[tick][channel][pitch]
+                    note.previous_delta_ticks = note.timeline_tick - previous_tick
+            # compute duration to next note
+            for channel in self.table[previous_tick]:
+                for pitch in self.table[previous_tick][channel]:
+                    note = self.table[previous_tick][channel][pitch]
+                    note.next_delta_ticks = tick - note.timeline_tick
+            previous_tick = tick
 
     def __str__(self):
         string = ""
@@ -197,6 +220,23 @@ class Frame(object):
 class SoundEvent(object):
     def __init__(self, notes):
         self.notes = notes
+
+    def first(self):
+        return self.notes[0]
+
+    def get_max_wait_ticks(self):
+        max_ticks = 0
+        for note in self.notes:
+            if note.wait_ticks > max_ticks:
+                max_ticks = note.wait_ticks
+        return max_ticks
+
+    def get_first_end(self):
+        min_ticks = sys.maxint
+        for note in self.notes:
+            if note.duration_ticks < min_ticks:
+                min_ticks = note.duration_ticks
+        return min_ticks
 
     def __hash__(self):
         return (hash(self.notes[0]) << 4) | len(self.notes)

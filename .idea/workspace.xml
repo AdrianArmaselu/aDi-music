@@ -2,63 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fea2916a-17dd-4242-a5c7-321745761cc3" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/graphmodel/Model.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/graphmodel/Policies.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/graphmodel/Tests.py" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\.idea\sebastian.iml" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\graphmodel\Objects.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\.gitignore" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\.travis.yml" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\CoreaImpro.mid" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\LICENSE" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\README.mediawiki" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\bach.mid" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\examples\example_1.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\examples\example_2.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\mary.mid" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\p.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\scripts\mididump.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\scripts\mididumphw.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\scripts\midilisten.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\scripts\midiplay.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\setup.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\constants.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\containers.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\events.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\fileio.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\sequencer.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\sequencer_alsa\.gitignore" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\sequencer_alsa\__init__.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\sequencer_alsa\sequencer.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\sequencer_alsa\sequencer_alsa.i" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\sequencer_osx\CoreMIDI.framework" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\sequencer_osx\a.out" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\sequencer_osx\backup.i" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\sequencer_osx\cfstring-typemaps-example-1.0.tar.gz" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\sequencer_osx\cfstring-typemaps-example-1.0\PKG-INFO" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\sequencer_osx\cfstring-typemaps-example-1.0\example.c" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\sequencer_osx\cfstring-typemaps-example-1.0\example.i" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\sequencer_osx\cfstring-typemaps-example-1.0\setup.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\sequencer_osx\make.sh" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\sequencer_osx\sequencer_osx.i" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\sequencer_osx\sequencer_osx.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\sequencer_osx\sequencer_osx_wrap.c" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\sequencer_osx\test" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\sequencer_osx\test.c" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\sequencer_osx\test.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\src\util.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\tests\mary_test.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\tests\tests.py" afterPath="" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\python-midi\tmp.py" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/.name" afterPath="$PROJECT_DIR$/.idea/.name" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/graphmodel/MidiIO.py" afterPath="$PROJECT_DIR$/graphmodel/MidiIO.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/graphmodel/Model.py" afterPath="$PROJECT_DIR$/graphmodel/Model.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/graphmodel/NGram.py" afterPath="$PROJECT_DIR$/graphmodel/NGram.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/language-model/mary.mid" afterPath="$PROJECT_DIR$/language-model/mary.mid" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/modules.xml" afterPath="$PROJECT_DIR$/.idea/modules.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="cs4375-apt3338-da-vinci-sebastian-renaissance-vivien.iws" />
@@ -84,7 +31,7 @@
         <entry file="file://$PROJECT_DIR$/graphmodel/MidiIO.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="47" column="70" selection-start-line="47" selection-start-column="70" selection-end-line="47" selection-end-column="70" />
+              <caret line="53" column="39" selection-start-line="53" selection-start-column="39" selection-end-line="53" selection-end-column="39" />
               <folding>
                 <element signature="e#0#42#0" expanded="true" />
               </folding>
@@ -92,11 +39,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name=".gitignore" pinned="false" current-in-tab="true">
+      <file leaf-file-name=".gitignore" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/.gitignore">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.65462756">
-              <caret line="65" column="7" selection-start-line="65" selection-start-column="7" selection-end-line="65" selection-end-column="7" />
+            <state vertical-scroll-proportion="0.0">
+              <caret line="59" column="0" selection-start-line="59" selection-start-column="0" selection-end-line="59" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -122,11 +69,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="NGram.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="NGram.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/graphmodel/NGram.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="104" column="32" selection-start-line="104" selection-start-column="32" selection-end-line="104" selection-end-column="32" />
+            <state vertical-scroll-proportion="0.8283898">
+              <caret line="157" column="41" selection-start-line="157" selection-start-column="41" selection-end-line="157" selection-end-column="41" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
               </folding>
@@ -148,8 +95,10 @@
         <entry file="file://$PROJECT_DIR$/graphmodel/Model.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="18" column="36" selection-start-line="18" selection-start-column="36" selection-end-line="18" selection-end-column="36" />
-              <folding />
+              <caret line="218" column="28" selection-start-line="218" selection-start-column="28" selection-end-line="218" selection-end-column="28" />
+              <folding>
+                <element signature="e#0#35#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -172,10 +121,10 @@
         <option value="$PROJECT_DIR$/graphmodel/Tests.py" />
         <option value="$PROJECT_DIR$/graphmodel/Objects.py" />
         <option value="$PROJECT_DIR$/graphmodel/Policies.py" />
-        <option value="$PROJECT_DIR$/graphmodel/NGram.py" />
-        <option value="$PROJECT_DIR$/graphmodel/Model.py" />
-        <option value="$PROJECT_DIR$/graphmodel/MidiIO.py" />
         <option value="$PROJECT_DIR$/.gitignore" />
+        <option value="$PROJECT_DIR$/graphmodel/MidiIO.py" />
+        <option value="$PROJECT_DIR$/graphmodel/Model.py" />
+        <option value="$PROJECT_DIR$/graphmodel/NGram.py" />
       </list>
     </option>
   </component>
@@ -211,6 +160,7 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -245,7 +195,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
       <pane id="Scratches" />
     </panes>
   </component>
@@ -466,6 +415,13 @@
       <option name="number" value="Default" />
       <updated>1459402782299</updated>
     </task>
+    <task id="LOCAL-00001" summary="Reformatted Code">
+      <created>1459957964751</created>
+      <option name="number" value="00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1459957964751</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -482,12 +438,13 @@
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.40080428" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32751676" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3261745" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
     </layout>
@@ -503,37 +460,15 @@
   <component name="VcsContentAnnotationSettings">
     <option name="myLimit" value="2678400000" />
   </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Reformatted Code" />
+    <option name="LAST_COMMIT_MESSAGE" value="Reformatted Code" />
+  </component>
   <component name="XDebuggerManager">
     <breakpoint-manager />
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/graphmodel/MidiIO.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="e#0#42#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://C:/Python27/Lib/site-packages/midi-0.2.3-py2.7.egg!/midi/events.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="128" column="6" selection-start-line="128" selection-start-column="6" selection-end-line="128" selection-end-column="6" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/graphmodel/Tests.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="10" column="10" selection-start-line="10" selection-start-column="10" selection-end-line="10" selection-end-column="10" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/graphmodel/NGram.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -556,59 +491,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="18" column="36" selection-start-line="18" selection-start-column="36" selection-end-line="18" selection-end-column="36" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/graphmodel/MidiIO.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
-            <element signature="e#0#42#0" expanded="true" />
+            <element signature="e#0#35#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://C:/Python27/Lib/site-packages/midi-0.2.3-py2.7.egg!/midi/events.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="128" column="6" selection-start-line="128" selection-start-column="6" selection-end-line="128" selection-end-column="6" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/graphmodel/Tests.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="10" column="10" selection-start-line="10" selection-start-column="10" selection-end-line="10" selection-end-column="10" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/graphmodel/NGram.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="104" column="32" selection-start-line="104" selection-start-column="32" selection-end-line="104" selection-end-column="32" />
-          <folding>
-            <element signature="e#0#12#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/graphmodel/Policies.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="8" column="14" selection-start-line="8" selection-start-column="14" selection-end-line="8" selection-end-column="14" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/graphmodel/Model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="18" column="36" selection-start-line="18" selection-start-column="36" selection-end-line="18" selection-end-column="36" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -660,7 +545,117 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="18" column="36" selection-start-line="18" selection-start-column="36" selection-end-line="18" selection-end-column="36" />
+          <folding>
+            <element signature="e#0#35#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/graphmodel/MidiIO.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#42#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://C:/Python27/Lib/site-packages/midi-0.2.3-py2.7.egg!/midi/events.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="128" column="6" selection-start-line="128" selection-start-column="6" selection-end-line="128" selection-end-column="6" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/graphmodel/Tests.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="10" column="10" selection-start-line="10" selection-start-column="10" selection-end-line="10" selection-end-column="10" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/graphmodel/NGram.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="104" column="32" selection-start-line="104" selection-start-column="32" selection-end-line="104" selection-end-column="32" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/graphmodel/Policies.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="8" column="14" selection-start-line="8" selection-start-column="14" selection-end-line="8" selection-end-column="14" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/graphmodel/Model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="18" column="36" selection-start-line="18" selection-start-column="36" selection-end-line="18" selection-end-column="36" />
+          <folding>
+            <element signature="e#0#35#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/graphmodel/MidiIO.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#42#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://C:/Python27/Lib/site-packages/midi-0.2.3-py2.7.egg!/midi/events.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="128" column="6" selection-start-line="128" selection-start-column="6" selection-end-line="128" selection-end-column="6" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/graphmodel/Tests.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="10" column="10" selection-start-line="10" selection-start-column="10" selection-end-line="10" selection-end-column="10" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/graphmodel/NGram.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="104" column="32" selection-start-line="104" selection-start-column="32" selection-end-line="104" selection-end-column="32" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/graphmodel/Policies.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="8" column="14" selection-start-line="8" selection-start-column="14" selection-end-line="8" selection-end-column="14" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/graphmodel/Model.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="18" column="36" selection-start-line="18" selection-start-column="36" selection-end-line="18" selection-end-column="36" />
+          <folding>
+            <element signature="e#0#35#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -712,7 +707,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#0#35#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -764,7 +761,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="67" column="8" selection-start-line="67" selection-start-column="8" selection-end-line="67" selection-end-column="8" />
-          <folding />
+          <folding>
+            <element signature="e#0#35#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -792,7 +791,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#0#35#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -820,7 +821,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#0#35#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -848,7 +851,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
+          <folding>
+            <element signature="e#0#35#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -890,20 +895,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/graphmodel/NGram.py">
+    <entry file="file://$PROJECT_DIR$/.gitignore">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="104" column="32" selection-start-line="104" selection-start-column="32" selection-end-line="104" selection-end-column="32" />
-          <folding>
-            <element signature="e#0#12#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/graphmodel/Model.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="18" column="36" selection-start-line="18" selection-start-column="36" selection-end-line="18" selection-end-column="36" />
+          <caret line="59" column="0" selection-start-line="59" selection-start-column="0" selection-end-line="59" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -911,18 +906,30 @@
     <entry file="file://$PROJECT_DIR$/graphmodel/MidiIO.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="47" column="70" selection-start-line="47" selection-start-column="70" selection-end-line="47" selection-end-column="70" />
+          <caret line="53" column="39" selection-start-line="53" selection-start-column="39" selection-end-line="53" selection-end-column="39" />
           <folding>
             <element signature="e#0#42#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/.gitignore">
+    <entry file="file://$PROJECT_DIR$/graphmodel/Model.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.65462756">
-          <caret line="65" column="7" selection-start-line="65" selection-start-column="7" selection-end-line="65" selection-end-column="7" />
-          <folding />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="218" column="28" selection-start-line="218" selection-start-column="28" selection-end-line="218" selection-end-column="28" />
+          <folding>
+            <element signature="e#0#35#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/graphmodel/NGram.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.8283898">
+          <caret line="157" column="41" selection-start-line="157" selection-start-column="41" selection-end-line="157" selection-end-column="41" />
+          <folding>
+            <element signature="e#0#12#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

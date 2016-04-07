@@ -1,7 +1,9 @@
 import Queue
+from collections import OrderedDict
 from random import randint
 
 import midi
+import sys
 
 from graphmodel.MidiIO import MidiIO
 from graphmodel.Model import SoundEvent, is_chord, MusicalTranscript, OrderedFrames, RunningNotesTable
@@ -13,6 +15,7 @@ __author__ = 'Adisor'
 # TODO: HANDLE ALL CHANNELS
 # TODO: RESOLUTION METHOD FOR SONGS METADATAS
 # TODO: KEEP IN MIND DIFFERENT FILE FORMATS
+# KEEP CONSISTENT TYPE 1 MIDI FORMAT
 """
 TODO: Methods for increasing distribution counts:
     velocity tolerance
@@ -100,16 +103,48 @@ class MusicGenerator(object):
                     next_frame = frame
         return next_frame
 
-    def to_midi_pattern(self):
-        running_notes = Queue.PriorityQueue()
-        pattern = midi.Pattern()
-        track = midi.Track()
+    # TODO: MOVE THIS TO ANOTHER OBJECT AND CALL IT SCHEDULER
+    # TODO: HANDLE MULTIPLE CHANNELS INTO MULTIPLE TRACKS
+    def schedule_events(self):
+        scheduled_sequence = {}
+        start = 0
+        end = sys.maxint
+        range = end - start
         for sound_event in self.sequence:
             if is_chord(sound_event):
+
+                first_note = sound_event.first()
+
+                # first schedule on events
                 for note in sound_event.notes:
-                    on_event = midi.NoteOnEvent(channel=note.channel, tick=note.wait_tick, pitch=note.pitch,
+                    on_event = midi.NoteOnEvent(channel=note.channel, tick=note.wait_ticks, pitch=note.pitch,
                                                 velocity=note.velocity)
-                    track.append(on_event)
+                    scheduled_sequence[start + note.wait_ticks] = on_event
+
+                start += sound_event.get_max_wait_ticks()
+                first_end = sound_event.get_first_end()
+                # schedule off events
+                for note in sound_event.notes:
+                    # basically, if the duration of this note is less than the time space between this and the next note
+                    # then we immediately add a noteoff event
+                    if note.duration_ticks <= note.next_delta_ticks:
+                        # how much to wait before stopping the previous note
+                        tick = note.next_delta_ticks - note.duration_ticks
+                        off_event = midi.NoteOnEvent(channel=note.channel, tick=tick, pitch=note.pitch,
+                                                     velocity=0)
+                        scheduled_sequence[] = off_event
+                    # the duration of this note is greater than the time space between notes, so we can play notes inbetween
+                    else:
+                        end = chord_start + note.ticks
+                        scheduled_sequence[]
+
+
+            else:
+                note = sound_event.first()
+                on_event = midi.NoteOnEvent(channel=note.channel, tick=note.wait_ticks, pitch=note.pitch,
+                                            velocity=note.velocity)
+        scheduled_sequence = OrderedDict(sorted(scheduled_sequence.items(), key=lambda key: key[0]))
+        return scheduled_sequence
 
     def print_sequence(self):
         print "SEQUENCE:"
@@ -127,6 +162,7 @@ class Policies:
     def default():
         return Policies(SoundEventTupleSelectionPolicy.HIGHEST_COUNT, MetadataResolutionPolicy.FIRST_SONG_RESOLUTION,
                         ChannelMixingPolicy.NO_MIX)
+
 
 # define properties
 midi_file = "bach.mid"

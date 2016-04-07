@@ -39,22 +39,19 @@ class MidiIO:
             timeline_tick = self.extract_track_notes(track, running_notes, timeline_tick)
 
     def extract_track_notes(self, track, running_notes, timeline_tick):
-        last_note = None
         for event in track:
             if is_meta_event(event):
                 continue
             timeline_tick += event.tick
             if is_new_note(event):
-                note = Note(timeline_tick, 0, 0, event.channel, event.pitch, event.velocity)
+                note = Note(timeline_tick, event.tick, 0, event.channel, event.pitch, event.velocity)
                 running_notes.add(note)
             if has_note_ended(event):
                 note = running_notes.get_note(event.channel, event.pitch)
                 note.duration_ticks = timeline_tick - note.timeline_tick
-                if last_note is not None:
-                    note.wait_ticks = timeline_tick - note.timeline_tick
                 self.table.add(note)
-                last_note = note
         self.table.sort()
+        self.table.update_delta_times()
         return timeline_tick
 
     def __str__(self):
