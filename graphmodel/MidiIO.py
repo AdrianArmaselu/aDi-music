@@ -58,6 +58,6 @@ class MidiIO:
         return str(self.data)
 
 
-file = MidiIO("mary.mid")
+file = MidiIO("bach.mid")
 print file.table
 print file

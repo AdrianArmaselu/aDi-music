@@ -14,13 +14,19 @@ def is_chord(notes):
 
 class Note(object):
     def __init__(self, timeline_tick, wait_ticks, duration_ticks, channel, pitch, velocity):
-        # timestamp
+        # timestamp from original song
         self.timeline_tick = timeline_tick
+
         # ticks before playing this note
         self.wait_ticks = wait_ticks
+
         # how long to play this note (not how many ticks until next note)
         self.duration_ticks = duration_ticks
+
+        # ticks from last sound event
         self.previous_delta_ticks = 0
+
+        # ticks to next sound event
         self.next_delta_ticks = 0
         self.channel = channel
         self.pitch = pitch
@@ -101,15 +107,19 @@ class OrganizedNotesTable(NotesTable):
     def sort(self):
         self.table = OrderedDict(sorted(self.table.items(), key=lambda key: key[0]))
 
+    def first_tick(self):
+        for tick in self.table:
+            return tick
+
     def update_delta_times(self):
-        previous_tick = 0
+        previous_tick = self.first_tick()
         for tick in self.table:
             # compute duration to previous note
             for channel in self.table[tick]:
                 for pitch in self.table[tick][channel]:
                     note = self.table[tick][channel][pitch]
                     note.previous_delta_ticks = note.timeline_tick - previous_tick
-            # compute duration to next note
+            # compute duration to next note from the previous one
             for channel in self.table[previous_tick]:
                 for pitch in self.table[previous_tick][channel]:
                     note = self.table[previous_tick][channel][pitch]
@@ -215,37 +225,37 @@ class Frame(object):
         return self.__hash__() == other.__hash__
 
 
-# List of notes
 # The size of the list indicates whether this is a chord or not ( n > 1 means chord, otherwise note)
+# Notes are sorted by duration
 class SoundEvent(object):
     def __init__(self, notes):
-        self.notes = notes
+        # sorted by duration
+        self.notes = {}
+        for note in notes:
+            self.notes[note.next_delta_ticks] = note
+        self.sorted_notes = sorted(self.notes.items(), key=lambda key: key[0])
 
     def first(self):
-        return self.notes[0]
+        return self.sorted_notes[0]
 
-    def get_max_wait_ticks(self):
-        max_ticks = 0
-        for note in self.notes:
-            if note.wait_ticks > max_ticks:
-                max_ticks = note.wait_ticks
-        return max_ticks
+    def shortest_note(self):
+        return self.sorted_notes[0]
 
-    def get_first_end(self):
+    def get_smallest_duration(self):
         min_ticks = sys.maxint
-        for note in self.notes:
-            if note.duration_ticks < min_ticks:
+        for note in self.sorted_notes:
+            if note.next_delta_ticks < min_ticks:
                 min_ticks = note.duration_ticks
         return min_ticks
 
     def __hash__(self):
-        return (hash(self.notes[0]) << 4) | len(self.notes)
+        return (hash(self.sorted_notes[0]) << 4) | len(self.sorted_notes)
 
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()
 
     def __str__(self):
         string = "("
-        for note in self.notes:
+        for note in self.sorted_notes:
             string += str(note) + ", "
         return string + ")"

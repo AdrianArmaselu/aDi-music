@@ -4,6 +4,7 @@ from random import randint
 
 import midi
 import sys
+import pygame
 
 from graphmodel.MidiIO import MidiIO
 from graphmodel.Model import SoundEvent, is_chord, MusicalTranscript, OrderedFrames, RunningNotesTable
@@ -103,53 +104,63 @@ class MusicGenerator(object):
                     next_frame = frame
         return next_frame
 
-    # TODO: MOVE THIS TO ANOTHER OBJECT AND CALL IT SCHEDULER
-    # TODO: HANDLE MULTIPLE CHANNELS INTO MULTIPLE TRACKS
-    def schedule_events(self):
-        scheduled_sequence = {}
-        start = 0
-        end = sys.maxint
-        range = end - start
-        for sound_event in self.sequence:
-            if is_chord(sound_event):
-
-                first_note = sound_event.first()
-
-                # first schedule on events
-                for note in sound_event.notes:
-                    on_event = midi.NoteOnEvent(channel=note.channel, tick=note.wait_ticks, pitch=note.pitch,
-                                                velocity=note.velocity)
-                    scheduled_sequence[start + note.wait_ticks] = on_event
-
-                start += sound_event.get_max_wait_ticks()
-                first_end = sound_event.get_first_end()
-                # schedule off events
-                for note in sound_event.notes:
-                    # basically, if the duration of this note is less than the time space between this and the next note
-                    # then we immediately add a noteoff event
-                    if note.duration_ticks <= note.next_delta_ticks:
-                        # how much to wait before stopping the previous note
-                        tick = note.next_delta_ticks - note.duration_ticks
-                        off_event = midi.NoteOnEvent(channel=note.channel, tick=tick, pitch=note.pitch,
-                                                     velocity=0)
-                        scheduled_sequence[] = off_event
-                    # the duration of this note is greater than the time space between notes, so we can play notes inbetween
-                    else:
-                        end = chord_start + note.ticks
-                        scheduled_sequence[]
-
-
-            else:
-                note = sound_event.first()
-                on_event = midi.NoteOnEvent(channel=note.channel, tick=note.wait_ticks, pitch=note.pitch,
-                                            velocity=note.velocity)
-        scheduled_sequence = OrderedDict(sorted(scheduled_sequence.items(), key=lambda key: key[0]))
-        return scheduled_sequence
-
     def print_sequence(self):
         print "SEQUENCE:"
         for item in self.sequence:
             print item
+
+
+def note_on_event(note):
+    return midi.NoteOnEvent(channel=note.channel, tick=0, pitch=note.pitch,
+                            velocity=note.velocity)
+
+
+def note_off_event(note):
+    return midi.NoteOnEvent(channel=note.channel, tick=0, pitch=note.pitch,
+                            velocity=0)
+
+
+# TODO: HANDLE MULTIPLE CHANNELS INTO MULTIPLE TRACKS
+class Scheduler:
+    def __init__(self, sequence):
+        self.sequence = sequence
+        self.scheduled_sequence = {}
+        self.schedule()
+
+    def schedule(self):
+        start = 0
+        for sound_event in self.sequence:
+            for note in sound_event.notes:
+                self.schedule_note(note, start)
+            start += sound_event.shortest_note().next_delta_ticks
+        self.scheduled_sequence = OrderedDict(sorted(self.scheduled_sequence.items(), key=lambda key: key[0]))
+
+    def schedule_note(self, note, start):
+        if start not in self.scheduled_sequence:
+            self.scheduled_sequence[start] = []
+        if start + note.duration_ticks not in self.scheduled_sequence:
+            self.scheduled_sequence[start + note.duration_ticks] = []
+        self.scheduled_sequence[start].append(note_on_event(note))
+        self.scheduled_sequence[start + note.duration_ticks].append(note_off_event(note))
+
+
+# TODO: HANDLE MULTIPLE CHANNELS INTO MULTIPLE TRACKS
+# Takes as input a sequence of note_event lists
+class MidiConverter:
+    def __init__(self, scheduled_sequence):
+        self.scheduled_sequence = scheduled_sequence
+        self.pattern = midi.Pattern()
+        self.convert()
+
+    def convert(self):
+        track = midi.Track()
+        last_tick = 0
+        for tick in self.scheduled_sequence:
+            for note_on_event in self.scheduled_sequence[tick]:
+                note_on_event.tick = tick - last_tick
+                last_tick = tick
+                track.append(note_on_event)
+        self.pattern.append(track)
 
 
 class Policies:
@@ -189,3 +200,17 @@ generator.generate()
 generator.print_sequence()
 
 sequence = generator.sequence
+
+scheduler = Scheduler(sequence)
+converter = MidiConverter(scheduler.scheduled_sequence)
+
+# save to file
+midi.write_midifile("output.mid", converter.pattern)
+
+# play the music
+pygame.init()
+pygame.mixer.music.load("output.mid")
+pygame.mixer.music.play()
+
+while pygame.mixer.music.get_busy():
+    pygame.time.wait(1000)
