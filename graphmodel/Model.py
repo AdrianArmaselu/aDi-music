@@ -159,13 +159,14 @@ class MusicalTranscript(object):
         self.__build__()
 
     def __build__(self):
+        table = self.notes_table.table
         for channel in self.notes_table.channels:
             self.tracks[channel] = []
-        for tick in self.notes_table.table:
-            for channel in self.notes_table[tick]:
+        for tick in table:
+            for channel in table[tick]:
                 notes = []
-                for pitch in self.notes_table[tick][channel]:
-                    notes.append(self.notes_table[tick][channel][pitch])
+                for pitch in table[tick][channel]:
+                    notes.append(table[tick][channel][pitch])
                 sound_event = SoundEvent(notes)
                 self.tracks[channel].append(sound_event)
 
@@ -223,6 +224,12 @@ class Frame(object):
 
     def __eq__(self, other):
         return self.__hash__() == other.__hash__
+
+    def __str__(self):
+        string = "Frame:\n"
+        for sound_event in self.sound_events:
+            string += str(sound_event) + ", "
+        return string
 
 
 # The size of the list indicates whether this is a chord or not ( n > 1 means chord, otherwise note)

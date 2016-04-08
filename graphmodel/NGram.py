@@ -1,13 +1,10 @@
-import Queue
 from collections import OrderedDict
-from random import randint
 
 import midi
-import sys
 import pygame
 
 from graphmodel.MidiIO import MidiIO
-from graphmodel.Model import SoundEvent, is_chord, MusicalTranscript, OrderedFrames, RunningNotesTable
+from graphmodel.Model import MusicalTranscript, OrderedFrames
 from graphmodel.Policies import SoundEventTupleSelectionPolicy, ChannelMixingPolicy, MetadataResolutionPolicy
 
 __author__ = 'Adisor'
@@ -37,12 +34,12 @@ def has_notes(channel_notes):
 
 
 class NGram(object):
-    def __init__(self, musical_transcript, n, policies=Policies.default()):
+    def __init__(self, musical_transcript, n):
         self.music_transcript = musical_transcript
         self.n = n
-        self.policies = policies
+        self.policies = Policies.default()
         self.frame_count = {}
-        self.event_count = {}
+        self.event_count = {0: {}}
         self.__build__()
 
     def __build__(self):
@@ -72,18 +69,21 @@ class NGram(object):
 
 
 class MusicGenerator(object):
-    def __init__(self, ngram, song_duration, policies=Policies.default()):
+    def __init__(self, ngram, song_duration):
         self.ngram = ngram
         # measured in number of notes
         self.frame_count = ngram.frame_count
         self.song_duration = song_duration
-        self.policies = policies
+        self.policies = Policies.default()
         self.sequence = []
 
     def generate(self):
 
         # first tuple
-        frame = self.frame_count[self.frame_count.keys()[0]]
+        frame = self.frame_count.keys()[0]
+        print self.frame_count.keys()[0]
+        print " ahah"
+        print frame
         for i in range(0, self.song_duration, 1):
             for sound_event in frame.sound_events:
                 self.sequence.append(sound_event)
@@ -176,7 +176,7 @@ class Policies:
 
 
 # define properties
-midi_file = "bach.mid"
+midi_file = "mary.mid"
 number_of_notes = 2
 
 # load file

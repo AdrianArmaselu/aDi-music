@@ -56,8 +56,3 @@ class MidiIO:
 
     def __str__(self):
         return str(self.data)
-
-
-file = MidiIO("bach.mid")
-print file.table
-print file
