@@ -16,6 +16,7 @@ def allowed_file(filename):
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
+    songs = os.listdir('static/music')
     if request.method == 'POST':
         for f_name in ['file', 'file2']:
             f = request.files[f_name]
@@ -24,7 +25,7 @@ def upload_file():
                 f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         return redirect(url_for('upload_file'))
     return render_template("upload.html",
-                        title = 'Upload 2 MIDI Files')
+                        title = 'Upload 2 MIDI Files', songs=songs)
 
 @app.route('/songs')
 def index():

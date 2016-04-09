@@ -74,3 +74,5 @@ boxes/*
 /.idea/workspace.xml
 #Venv
 *venv/
+
+.DS_Store
