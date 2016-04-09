@@ -145,9 +145,11 @@ class RunningNotesTable(NotesTable):
         channel = note.channel
         if pitch not in self.table:
             self.table[pitch] = {}
-        self.table[pitch][channel] = note
+        if channel not in self.table:
+            self.table[pitch][channel] = []
+        self.table[pitch][channel].append(note)
 
-    def get_note(self, channel, pitch):
+    def get_notes(self, channel, pitch):
         return self.table[pitch][channel]
 
 
@@ -192,7 +194,7 @@ class OrderedFrames(object):
         return frame
 
     def is_first_frame_full(self):
-        return self.frames[0].is_full
+        return self.frames[0].is_full()
 
     def __sizeof__(self):
         return len(self.frames)
@@ -264,5 +266,5 @@ class SoundEvent(object):
     def __str__(self):
         string = "("
         for note in self.sorted_notes:
-            string += str(note) + ", "
+            string += str(note[1]) + ", "
         return string + ")"

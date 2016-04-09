@@ -50,19 +50,18 @@ class NGram(object):
                 for sound_event in self.music_transcript.get_sound_events(track):
                     frames.add(sound_event)
 
-                # for logging purposes
-                if sound_event not in self.event_count:
-                    self.event_count[0][sound_event] = 1
-                else:
-                    self.event_count[0][sound_event] += 1
+                    # for logging purposes
+                    if sound_event not in self.event_count:
+                        self.event_count[0][sound_event] = 1
+                    else:
+                        self.event_count[0][sound_event] += 1
 
-                # update the count with the first frame
-                if frames.is_first_frame_full():
-                    frame = frames.remove_first()
-                    if frame not in self.frame_count:
-                        self.frame_count[frame] = 1
-                    self.frame_count[frame] += 1
-
+                    # update the count with the first frame
+                    if frames.is_first_frame_full():
+                        frame = frames.remove_first()
+                        if frame not in self.frame_count:
+                            self.frame_count[frame] = 1
+                        self.frame_count[frame] += 1
         # needs implementation
         if self.policies.channel_mixing_policy is ChannelMixingPolicy.MIX:
             pass
@@ -78,12 +77,9 @@ class MusicGenerator(object):
         self.sequence = []
 
     def generate(self):
-
-        # first tuple
+        # first frame
         frame = self.frame_count.keys()[0]
-        print self.frame_count.keys()[0]
-        print " ahah"
-        print frame
+        print "FRAME", frame
         for i in range(0, self.song_duration, 1):
             for sound_event in frame.sound_events:
                 self.sequence.append(sound_event)
@@ -191,7 +187,7 @@ print data.table
 musical_transcript = MusicalTranscript(table)
 
 # construct the ngram
-ngram = NGram(musical_transcript, 3)
+ngram = NGram(musical_transcript, 2)
 print ngram
 
 # construct the generator and generate a sequence of sound events
