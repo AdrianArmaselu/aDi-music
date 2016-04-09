@@ -47,7 +47,7 @@ class MidiIO:
                 note = Note(timeline_tick, event.tick, 0, event.channel, event.pitch, event.velocity)
                 running_notes.add(note)
             if has_note_ended(event):
-                note = running_notes.get_notes(event.channel, event.pitch)
+                note = running_notes.get_note(event.channel, event.pitch)
                 note.duration_ticks = timeline_tick - note.timeline_tick
                 self.table.add(note)
         self.table.sort()

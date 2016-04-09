@@ -4,7 +4,7 @@ import midi
 import pygame
 
 from graphmodel.MidiIO import MidiIO
-from graphmodel.Model import MusicalTranscript, OrderedFrames
+from graphmodel.Model import MusicalTranscript, OrderedFrames, Frame
 from graphmodel.Policies import SoundEventTupleSelectionPolicy, ChannelMixingPolicy, MetadataResolutionPolicy
 
 __author__ = 'Adisor'
@@ -85,7 +85,7 @@ class MusicGenerator(object):
                 self.sequence.append(sound_event)
             frame = self.next_frame(frame.last())
             # we are only concerned about elements after the first one
-            frame = frame[1:]
+            frame = Frame(self.ngram.n, frame.sound_events[1:])
 
     # find the frame with the maximum count that starts with last_sound_event
     def next_frame(self, last_sound_event):
@@ -172,8 +172,8 @@ class Policies:
 
 
 # define properties
-midi_file = "mary.mid"
-number_of_notes = 2
+midi_file = "bach.mid"
+number_of_notes = 100
 
 # load file
 data = MidiIO(midi_file)
@@ -210,3 +210,4 @@ pygame.mixer.music.play()
 
 while pygame.mixer.music.get_busy():
     pygame.time.wait(1000)
+

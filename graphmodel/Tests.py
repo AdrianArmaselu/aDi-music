@@ -1,11 +1,6 @@
+from graphmodel.MidiIO import MidiIO
+
 __author__ = 'Adisor'
 
-
-def test(some_list):
-    some_list.append("haha")
-
-
-list = ["1", "2"]
-
-test(list)
-print list
+data = MidiIO("output.mid")
+print data

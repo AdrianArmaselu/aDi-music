@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import sys
 
 __author__ = 'Adisor'
@@ -145,15 +145,14 @@ class RunningNotesTable(NotesTable):
         channel = note.channel
         if pitch not in self.table:
             self.table[pitch] = {}
-        if channel not in self.table:
-            self.table[pitch][channel] = []
-        self.table[pitch][channel].append(note)
+        self.table[pitch][channel] = note
 
-    def get_notes(self, channel, pitch):
+    def get_note(self, channel, pitch):
         return self.table[pitch][channel]
 
 
 # Dictionary of tracks. Each track contains consecutive sound events
+# Builds SoundEvent objects
 class MusicalTranscript(object):
     def __init__(self, notes_table):
         self.notes_table = notes_table
@@ -174,6 +173,9 @@ class MusicalTranscript(object):
 
     def get_sound_events(self, channel):
         return self.tracks[channel]
+
+    # def __str__(self):
+
 
 
 # List of consecutive frames - consecutive from the point of view of the first note of every frame
@@ -202,9 +204,12 @@ class OrderedFrames(object):
 
 # Tuple of Sound Events
 class Frame(object):
-    def __init__(self, max_size):
+    def __init__(self, max_size, sound_events=None):
         self.max_size = max_size
-        self.sound_events = ()
+        if sound_events is None:
+            self.sound_events = ()
+        else:
+            self.sound_events = sound_events
 
     def add(self, sound_event):
         self.sound_events += (sound_event,)
@@ -239,32 +244,31 @@ class Frame(object):
 class SoundEvent(object):
     def __init__(self, notes):
         # sorted by duration
-        self.notes = {}
-        for note in notes:
-            self.notes[note.next_delta_ticks] = note
-        self.sorted_notes = sorted(self.notes.items(), key=lambda key: key[0])
+        self.notes = ()
+        for note in sorted(notes, key=lambda note:note.next_delta_ticks):
+            self.notes += (note,)
 
     def first(self):
-        return self.sorted_notes[0]
+        return self.notes[0]
 
     def shortest_note(self):
-        return self.sorted_notes[0]
+        return self.notes[0]
 
     def get_smallest_duration(self):
         min_ticks = sys.maxint
-        for note in self.sorted_notes:
+        for note in self.notes:
             if note.next_delta_ticks < min_ticks:
                 min_ticks = note.duration_ticks
         return min_ticks
 
     def __hash__(self):
-        return (hash(self.sorted_notes[0]) << 4) | len(self.sorted_notes)
+        return (hash(self.notes) << 4) | len(self.notes)
 
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()
 
     def __str__(self):
-        string = "("
-        for note in self.sorted_notes:
-            string += str(note[1]) + ", "
+        string = "SoundEvent:("
+        for note in self.notes:
+            string += str(note) + ", "
         return string + ")"
