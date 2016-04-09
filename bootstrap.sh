@@ -10,15 +10,20 @@ sudo apt-get install python-setuptools -y > /dev/null
 sudo apt-get install build-essential -y > /dev/null
 sudo apt-get install python-numpy -y > /dev/null
 sudo apt-get install python-scipy -y > /dev/null
-sudo apt-get install python-matplotlib -y > /dev/null
-sudo apt-get install ipython -y > /dev/null
-sudo apt-get install ipython-notebook -y > /dev/null
-sudo apt-get install python-pandas -y > /dev/null
-sudo apt-get install python-sympy -y > /dev/null
-sudo apt-get install python-nose -y > /dev/null
-sudo pip install --upgrade --no-deps git+git://github.com/Theano/Theano.git
-sudo pip install theano-lstm python-midi
+#sudo apt-get install python-matplotlib -y > /dev/null
+#sudo apt-get install ipython -y > /dev/null
+#sudo apt-get install ipython-notebook -y > /dev/null
+#sudo apt-get install python-pandas -y > /dev/null
+#sudo apt-get install python-sympy -y > /dev/null
+#sudo apt-get install python-nose -y > /dev/null
+#sudo pip install --upgrade --no-deps git+git://github.com/Theano/Theano.git
+#sudo pip install theano-lstm python-midi
+
 #cd /vagrant/python-midi
 #python setup.py install
 #cd /home/vagrant
-pip install mido
+#pip install mido
+
+#midi to mp3
+sudo apt-get install timidity timidity-interfaces-extra -y
+sudo apt-get install lame libmp3lame0 -y
