@@ -1,7 +1,7 @@
 import os
 
-def midi_to_mp3(midifile):
-  command = "timidity -Ow -o - " + midifile + " | lame - output.mp3"
+def midi_to_mp3(midifile, outputfile):
+  command = "timidity -Ow -o - " + midifile + " | lame - output/" + outputfile
   os.system(command)
 
-midi_to_mp3("bach.mid")
+midi_to_mp3("k.mid", "output.mp3")
