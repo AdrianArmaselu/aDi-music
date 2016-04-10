@@ -5,12 +5,13 @@ from flask import send_from_directory
 from flask import render_template
 from werkzeug import secure_filename
 
+
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = 'songs'
 ALLOWED_EXTENSIONS = set(['mid'])
-APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = os.path.join(APP_ROOT, 'files/{}'.format(UPLOAD_FOLDER))
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -24,8 +25,7 @@ def upload_file():
             f = request.files[f_name]
             if f and allowed_file(f.filename):
                 filename = secure_filename(f.filename)
-                target = os.path.join(APP_ROOT, 'files/{}'.format(UPLOAD_FOLDER))
-                destination =  "/".join([target, filename])
+                destination = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 #print(destination, file=sys.stderr)
                 f.save(destination)
                 #print("Saved", file=sys.stderr)
@@ -33,14 +33,14 @@ def upload_file():
     return render_template("upload.html",
                         title = 'Upload 2 MIDI Files', songs=songs)
 
-@app.route('/songs')
-def index():
-    music_files = [f for f in os.listdir(UPLOAD_FOLDER) if f.endswith('mid')]
-    music_files_number = len(music_files)
-    return render_template("songs.html",
-                        title = 'Songs Available',
-                        music_files_number = music_files_number,
-                        music_files = music_files)
+# @app.route('/songs')
+# def index():
+#     music_files = [f for f in os.listdir(UPLOAD_FOLDER) if f.endswith('mid')]
+#     music_files_number = len(music_files)
+#     return render_template("songs.html",
+#                         title = 'Songs Available',
+#                         music_files_number = music_files_number,
+#                         music_files = music_files)
 
 @app.route('/songs/<filename>')
 def uploaded_file(filename):
