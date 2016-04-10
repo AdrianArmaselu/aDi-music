@@ -1,15 +1,14 @@
 {% extends 'base.html' %}
 {% block play %}
 <h1>Upload 2 MIDI Files</h1>
-<!-- <form action="" method=post enctype=multipart/form-data>
+<!--<form action="" method=post enctype=multipart/form-data>
   <p><input type=file name=file></p>
   <p><input type=file name=file2></p>
     <input type=submit value=Upload>
 </form> -->
-<form class="form-horizontal" style="margin-left:20px">
+<form action="" method=post enctype=multipart/form-data class="form-horizontal" style="margin-left:20px" >
 <fieldset>
 <div class="form-group">
-  <!-- <div class="col-md-4"> -->
   <br>
     <span class="btn btn-default btn-file" style="margin-bottom:5px">
         Browse <input type="file" name="file">
@@ -18,7 +17,6 @@
         Browse <input type="file" name="file2">
     </span><br>
     <button class="btn btn-primary" type=submit value=Upload>Submit</button>
-  <!-- </div> -->
 </div>
 </fieldset>
 </form>
