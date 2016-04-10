@@ -63,4 +63,4 @@ target/
 
 #IntellijIdea
 .iml
-.idea/workspace.xml
+/.idea/*
