@@ -2,48 +2,25 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fea2916a-17dd-4242-a5c7-321745761cc3" name="Default" comment="">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/biaxial-rnn-music-composition/data.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/biaxial-rnn-music-composition/main.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/biaxial-rnn-music-composition/midi_to_statematrix.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/biaxial-rnn-music-composition/model.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/biaxial-rnn-music-composition/multi_training.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/biaxial-rnn-music-composition/music/pathetique_1_format0.mid" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/biaxial-rnn-music-composition/music/pathetique_3_format0.mid" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/biaxial-rnn-music-composition/out_to_in_op.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/biaxial-rnn-music-composition/output/composition.mid" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/biaxial-rnn-music-composition/output/params0.p" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/biaxial-rnn-music-composition/output/sample0.mid" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/biaxial-rnn-music-composition/output/small_composition.mid" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/biaxial-rnn-music-composition/output/small_sample0.mid" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/biaxial-rnn-music-composition/readme.md" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/biaxial-rnn-music-composition/setup1.sh" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/biaxial-rnn-music-composition/setup2.sh" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/biaxial-rnn-music-composition/setup_optional.sh" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/biaxial-rnn-music-composition/visualize.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/README.md" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/basicboxes.lisp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/chordseq.lisp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/container.lisp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/etf.lisp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/genfunmetaclass.lisp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/index.lisp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/kernel.lisp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/lisptools.lisp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/lists.lisp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/lz.lisp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/lz_with function from other lib but could not be excuted.lisp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/maquettecontainer.lisp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/mary.mid" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/metaclasses.lisp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/midi-api.lisp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/midi.lisp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/midifile.lisp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/objects.lisp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/scoreobject.lisp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/system.lisp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/tonalite.lisp" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/language-model/tools.lisp" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/java/net/deepmusicio/graphmodel/MusicalNote.java" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/java/net/deepmusicio/graphmodel/SoundEvent.java" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/java/net/deepmusicio/graphmodel/test/MaryTest.java" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/java/net/deepmusicio/graphmodel/test/MidiTest.java" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/java/net/deepmusicio/graphmodel/utils/MidiIO.java" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/resources/music/Eminem/Like Toy Soldiers.mid" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/resources/music/Eminem/Under_The_Influence.mid" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/resources/music/Eminem/badmeetsevil.mid" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/resources/music/Eminem/big_weeni.mid" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/resources/music/Eminem/business.mid" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/resources/music/Eminem/cleaning out my closet.mid" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/resources/music/Eminem/crazy_in_love.mid" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/resources/music/Eminem/forgotaboutdre.mid" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/resources/music/Eminem/loseyourself.mid" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/resources/music/Eminem/mosh.mid" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/resources/music/Eminem/puke.mid" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/resources/music/Eminem/purple pills.mid" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/resources/music/Eminem/stilldontgiveaf.mid" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/src/main/resources/music/Eminem/thewayiam.mid" afterPath="" />
     </list>
     <ignored path="cs4375-apt3338-da-vinci-sebastian-renaissance-vivien.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -64,14 +41,24 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="NGram.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="NGram.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/graphmodel/NGram.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.6938776">
+            <state vertical-scroll-proportion="0.0">
               <caret line="207" column="29" selection-start-line="207" selection-start-column="29" selection-end-line="207" selection-end-column="29" />
               <folding>
                 <element signature="e#0#35#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name=".gitignore" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/.gitignore">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.83287674">
+              <caret line="76" column="0" selection-start-line="76" selection-start-column="0" selection-end-line="76" selection-end-column="0" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -889,14 +876,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/.gitignore">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.77321815">
-          <caret line="76" column="0" selection-start-line="76" selection-start-column="0" selection-end-line="76" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/graphmodel/MidiIO.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.6020408">
@@ -927,11 +906,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/graphmodel/NGram.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6938776">
+        <state vertical-scroll-proportion="0.0">
           <caret line="207" column="29" selection-start-line="207" selection-start-column="29" selection-end-line="207" selection-end-column="29" />
           <folding>
             <element signature="e#0#35#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.83287674">
+          <caret line="76" column="0" selection-start-line="76" selection-start-column="0" selection-end-line="76" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
