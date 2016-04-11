@@ -6,9 +6,11 @@
         <h3>Songs</h3>
         <ul>
             {% for song in songs %}
-            <a href="#" onClick="MIDIjs.play('static/files/songs/{{song}}');"><button class="btn btn-primary" >Play {{song}}</button></a>
+            <a href="#" onClick="MIDIjs.play('{{upload_folder}}/{{song}}');"><button class="btn btn-primary" >Play {{song}}</button></a>
             {% endfor %}
+            {% if songs %}
             <a href="#" onClick="MIDIjs.stop();"><button class="btn btn-primary" >Stop</button></a><br>
+            {% endif %}
         </ul>
         <form action="" method=post enctype=multipart/form-data class="form-horizontal" style="margin-left:20px" >
             <fieldset>
