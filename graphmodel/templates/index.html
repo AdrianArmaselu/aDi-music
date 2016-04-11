@@ -5,11 +5,47 @@
         <h2 class="light-green">Step1: Upload Songs in Midi Format, Select a Genre if You Want</h2><br>
         <h3>Songs</h3>
         <ul>
+            <script type='text/javascript'>
+            function DeleteSong(elm) {
+                song = $(elm).attr('song-id')
+                $.ajax({
+                    url: '/delete_song',
+                    data: {
+                        song:  $(elm).attr('song')
+                    },
+                    type: 'POST',
+                    success: function(res) {
+                        //console.log("ok")
+                        //var html = $('#refresh-this-div').html();
+                        //$('#refresh-this-div').html(html);
+                        //console.log("end")
+
+                        $('#'+ song).hide();
+                        songs =  $('.songs')
+                        $('#stop-btn').hide()
+                        for(i=0;i<songs.length;i++){
+                            if(songs[i].style.display !== "none")
+                              $('#stop-btn').css("display", "")
+                         }
+                    },
+
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            }
+            </script>
+            <div id="#refresh-this-div">
             {% for song in songs %}
-            <a href="#" onClick="MIDIjs.play('{{upload_folder}}/{{song}}');"><button class="btn btn-primary" >Play {{song}}</button></a>
+                <div id="{{song.split('.')[0]}}" class="songs">
+            <a href="#" onClick="MIDIjs.play('{{upload_folder}}/{{song}}');" ><button class="btn btn-primary" >Play {{song}}</button></a>
+
+<button type="button" class="btn btn-primary" onclick="DeleteSong(this)" song={{upload_folder}}/{{song}} song-id="{{song.split('.')[0]}}">Delete</button>
+</div>
             {% endfor %}
+                </div>
             {% if songs %}
-            <a href="#" onClick="MIDIjs.stop();"><button class="btn btn-primary" >Stop</button></a><br>
+            <a href="#" onClick="MIDIjs.stop();" id="stop-btn"><button class="btn btn-primary" >Stop</button></a><br>
             {% endif %}
         </ul>
         <form action="" method=post enctype=multipart/form-data class="form-horizontal" style="margin-left:20px" >

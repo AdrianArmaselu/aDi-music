@@ -1,6 +1,6 @@
 from __future__ import print_function # In python 2.7
 import os, sys
-from flask import Flask, request, redirect, url_for
+from flask import Flask, request, redirect, url_for, json
 from flask import send_from_directory
 from flask import render_template
 from werkzeug import secure_filename
@@ -35,10 +35,19 @@ def upload_file():
             if f and allowed_file(f.filename):
                 filename = secure_filename(f.filename)
                 destination = os.path.join(upload_folder, filename)
+                print(upload_folder)
+                print(destination)
                 f.save(destination)
         return redirect(url_for('upload_file'))
     return render_template("index.html",
                         title = 'Sebastian Music', songs=songs, upload_folder=upload_folder)
+
+
+@app.route('/delete_song', methods=['POST'])
+def delete_song():
+    song = request.form['song']
+    os.remove(song)
+    return redirect(url_for('upload_file'))
 
 # @app.route('/songs')
 # def index():
