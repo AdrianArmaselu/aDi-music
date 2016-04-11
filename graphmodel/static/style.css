@@ -1,0 +1,64 @@
+        .btn-file {
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-file input[type=file] {
+            position: absolute;
+            top: 0;
+            right: 0;
+            min-width: 100%;
+            min-height: 100%;
+            font-size: 100px;
+            text-align: right;
+            filter: alpha(opacity=0);
+            opacity: 0;
+            outline: none;
+            background: white;
+            cursor: inherit;
+            display: block;
+        }
+
+        h2, h3, h4{
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .content {
+            background-color: #47585F;
+            padding: 15rem 0 12rem 0;
+            position: relative;
+            background-image: url('../static/img/asfalt-light.png');
+            font-family: 'Montserrat', sans-serif;
+        }
+        .btn-next {
+            width: 80px;
+            height: 40px;
+        }
+        section{
+            position: relative;
+            overflow: hidden;
+            height:100vh;
+        }
+        .dark-green{
+            color:#96D294;
+        }
+        .light-green{
+            color:#ACC6BB;
+        }
+        .step3-txt{
+            color:#DFBC9E;
+        }
+        .step4-txt{
+            color:#EB9971;
+        }
+        .seb-img{
+            padding: 4px;
+            padding-top:50px;
+            line-height: 1.42857143;
+            border-radius: 4px;
+            -webkit-transition: all .2s ease-in-out;
+            -o-transition: all .2s ease-in-out;
+            transition: all .2s ease-in-out;
+            display: inline-block;
+            max-width: 100%;
+            height: auto;
+        }

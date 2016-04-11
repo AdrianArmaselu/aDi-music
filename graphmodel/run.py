@@ -5,7 +5,6 @@ from flask import send_from_directory
 from flask import render_template
 from werkzeug import secure_filename
 
-
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = 'songs'
 ALLOWED_EXTENSIONS = set(['mid'])
@@ -19,18 +18,18 @@ def allowed_file(filename):
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
-    songs = os.listdir('static/music')
+    songs = os.listdir('files/songs')
     if request.method == 'POST':
-        for f_name in ['file', 'file2']:
+        for f_name in ['file']: #, 'file2'
             f = request.files[f_name]
             if f and allowed_file(f.filename):
                 filename = secure_filename(f.filename)
                 destination = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                #print(destination, file=sys.stderr)
+                print(destination, file=sys.stderr)
                 f.save(destination)
-                #print("Saved", file=sys.stderr)
+                print("Saved", file=sys.stderr)
         return redirect(url_for('upload_file'))
-    return render_template("upload.html",
+    return render_template("index.html",
                         title = 'Upload 2 MIDI Files', songs=songs)
 
 # @app.route('/songs')
