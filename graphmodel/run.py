@@ -18,7 +18,7 @@ def allowed_file(filename):
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
-    songs = os.listdir('files/songs')
+    songs = os.listdir('static/files/songs')
     if request.method == 'POST':
         for f_name in ['file']: #, 'file2'
             f = request.files[f_name]
