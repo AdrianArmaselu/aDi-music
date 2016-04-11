@@ -42,21 +42,10 @@
     </section>
 
     <section id="step3">
-        <h2 class="light-green">Step3: Convert Generated Song from Midi Format to MP3 Format</h2>
-        <a><button class="btn btn-primary">Convert</button></a>
-        <br>
-        <br>
-        <i class="fa fa-spinner fa-pulse fa-3x"></i>
-        <br>
-        <br>
-        <a href="#step4"><button class="btn btn-primary btn-next" >Next</button></a>
-    </section>
-
-    <section id="step4">
-        <h2 class="light-green">Step4: Try It Out!</h2>
-        <audio controls="controls" autoplay="autoplay"></audio><br>
+        <h2 class="light-green">Step3: Try It Out!</h2>
+         <a href="#" onClick="MIDIjs.play('/static/output/output.mid');"><button class="btn btn-primary" >Play</button></a>
+         <a href="#" onClick="MIDIjs.stop();"><button class="btn btn-primary" >Stop</button></a><br>
         <img src="/static/img/sebastian.jpg" class="seb-img" alt="Sebastian is happy you are here" width="25%" height="25%">
-
     </section>
 </div>
 {% endblock %}
