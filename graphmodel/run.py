@@ -30,13 +30,12 @@ def upload_file():
 
     songs = os.listdir(upload_folder)
     if request.method == 'POST':
-        for f_name in ['file']:
-            f = request.files[f_name]
+        upload_files = request.files.getlist("file[]")
+        for f in upload_files:
             if f and allowed_file(f.filename):
                 filename = secure_filename(f.filename)
                 destination = os.path.join(upload_folder, filename)
                 f.save(destination)
-                print("Saved", file=sys.stderr)
         return redirect(url_for('upload_file'))
     return render_template("index.html",
                         title = 'Sebastian Music', songs=songs, upload_folder=upload_folder)
