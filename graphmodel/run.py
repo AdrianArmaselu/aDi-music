@@ -30,7 +30,7 @@ def upload_file():
                 print("Saved", file=sys.stderr)
         return redirect(url_for('upload_file'))
     return render_template("index.html",
-                        title = 'Upload 2 MIDI Files', songs=songs)
+                        title = 'Sebastian Music', songs=songs)
 
 # @app.route('/songs')
 # def index():
