@@ -1,19 +1,8 @@
-from collections import OrderedDict
-
-import midi
-import pygame
-
-from graphmodel.MidiIO import MidiIO
-from graphmodel.Model import MusicalTranscript, OrderedFrames, Frame
-from graphmodel.Policies import SoundEventTupleSelectionPolicy, ChannelMixingPolicy, MetadataResolutionPolicy
+from graphmodel.Model import Frame
+from graphmodel.Policies import ChannelMixingPolicy
 
 __author__ = 'Adisor'
 
-# TODO: HANDLE CHANNELS IN A NEW WAY
-# TODO: HANDLE ALL CHANNELS
-# TODO: RESOLUTION METHOD FOR SONGS METADATAS
-# TODO: KEEP IN MIND DIFFERENT FILE FORMATS
-# KEEP CONSISTENT TYPE 1 MIDI FORMAT
 """
 TODO: Methods for increasing distribution counts:
     velocity tolerance
@@ -34,180 +23,94 @@ def has_notes(channel_notes):
 
 
 class NGram(object):
-    def __init__(self, musical_transcript, n):
+    """
+    Builds a distribution map that counts the number of unique frames in the song. Key is frame, value is count
+    """
+
+    def __init__(self, musical_transcript, n, policy_configuration):
         self.music_transcript = musical_transcript
-        self.n = n
-        self.policies = Policies.default()
-        self.frame_count = {}
-        self.event_count = {0: {}}
+        self.frame_size = n
+        self.policies = policy_configuration
+        self.frame_distribution = {}
+        # maps indexes to frames
+        self.indexed_frames = {}
+        # maps sound events to the index in frame_distribution where they start in a frame
+        self.sound_event_indexes = {}
+        self.event_distribution = {0: {}}
         self.__build__()
 
     def __build__(self):
-        frames = OrderedFrames(self.n)
+        frames = OrderedFrames(self.frame_size)
 
         if self.policies.channel_mixing_policy is ChannelMixingPolicy.NO_MIX:
             for track in self.music_transcript.tracks:
                 for sound_event in self.music_transcript.get_sound_events(track):
                     frames.add(sound_event)
-
                     # for logging purposes
-                    if sound_event not in self.event_count:
-                        self.event_count[0][sound_event] = 1
-                    else:
-                        self.event_count[0][sound_event] += 1
-
+                    self.update_event_distribution(sound_event)
                     # update the count with the first frame
                     if frames.is_first_frame_full():
                         frame = frames.remove_first()
-                        if frame not in self.frame_count:
-                            self.frame_count[frame] = 1
-                        self.frame_count[frame] += 1
+                        if frame not in self.frame_distribution:
+                            self.frame_distribution[frame] = 0
+                        self.frame_distribution[frame] += 1
+                        self.index_frame(frame)
         # needs implementation
         if self.policies.channel_mixing_policy is ChannelMixingPolicy.MIX:
             pass
 
+    def update_event_distribution(self, sound_event):
+        if sound_event not in self.event_distribution:
+            self.event_distribution[0][sound_event] = 1
+        else:
+            self.event_distribution[0][sound_event] += 1
 
-class MusicGenerator(object):
-    def __init__(self, ngram, song_duration):
-        self.ngram = ngram
-        # measured in number of notes
-        self.frame_count = ngram.frame_count
-        self.song_duration = song_duration
-        self.policies = Policies.default()
-        self.sequence = []
+    def index_frame(self, frame):
+        key = hash(frame)
+        self.indexed_frames[key] = frame
+        first_event = frame.first()
+        if first_event not in self.sound_event_indexes:
+            self.sound_event_indexes[first_event] = []
+        self.sound_event_indexes[first_event].append(key)
 
-    def generate(self):
-        # first frame
-        frame = self.frame_count.keys()[0]
-        print "FRAME", frame
-        for i in range(0, self.song_duration, 1):
-            for sound_event in frame.sound_events:
-                self.sequence.append(sound_event)
-            frame = self.next_frame(frame.last())
-            # we are only concerned about elements after the first one
-            frame = Frame(self.ngram.n, frame.sound_events[1:])
+    def get_sound_event_indexes(self, sound_event):
+        return self.sound_event_indexes[sound_event]
 
-    # find the frame with the maximum count that starts with last_sound_event
-    def next_frame(self, last_sound_event):
-        next_frame = None
+    def get_frame(self, index):
+        return self.frame_distribution.keys()[index]
 
-        if self.policies.selection_policy is SoundEventTupleSelectionPolicy.HIGHEST_COUNT:
-            max_count = 0
-            for frame in self.frame_count:
-                count = self.frame_count[frame]
-                if frame.first() == last_sound_event and (count > max_count):
-                    max_count = count
-                    next_frame = frame
-        return next_frame
-
-    def print_sequence(self):
-        print "SEQUENCE:"
-        for item in self.sequence:
-            print item
+    def __str__(self):
+        string = "NGram:\n"
+        for frame in self.frame_distribution:
+            string += str(self.frame_distribution[frame]) + ": " + str(frame) + "\n"
+        return string
 
 
-def note_on_event(note):
-    return midi.NoteOnEvent(channel=note.channel, tick=0, pitch=note.pitch,
-                            velocity=note.velocity)
+class OrderedFrames(object):
+    """
+    Used for constructing the NGram
 
+    Contains consecutive frames - consecutive based on timeline tick
+    """
 
-def note_off_event(note):
-    return midi.NoteOnEvent(channel=note.channel, tick=0, pitch=note.pitch,
-                            velocity=0)
+    def __init__(self, frame_size):
+        self.frame_size = frame_size
+        self.frames = []
 
+    def add(self, sound_event):
+        # Adds sound event to all frames
+        frame = Frame(self.frame_size)
+        self.frames.append(frame)
+        for frame in self.frames:
+            frame.add(sound_event)
 
-# TODO: HANDLE MULTIPLE CHANNELS INTO MULTIPLE TRACKS
-class Scheduler:
-    def __init__(self, sequence):
-        self.sequence = sequence
-        self.scheduled_sequence = {}
-        self.schedule()
+    def remove_first(self):
+        frame = self.frames[0]
+        del self.frames[0]
+        return frame
 
-    def schedule(self):
-        start = 0
-        for sound_event in self.sequence:
-            for note in sound_event.notes:
-                self.schedule_note(note, start)
-            start += sound_event.shortest_note().next_delta_ticks
-        self.scheduled_sequence = OrderedDict(sorted(self.scheduled_sequence.items(), key=lambda key: key[0]))
+    def is_first_frame_full(self):
+        return self.frames[0].is_full()
 
-    def schedule_note(self, note, start):
-        if start not in self.scheduled_sequence:
-            self.scheduled_sequence[start] = []
-        if start + note.duration_ticks not in self.scheduled_sequence:
-            self.scheduled_sequence[start + note.duration_ticks] = []
-        self.scheduled_sequence[start].append(note_on_event(note))
-        self.scheduled_sequence[start + note.duration_ticks].append(note_off_event(note))
-
-
-# TODO: HANDLE MULTIPLE CHANNELS INTO MULTIPLE TRACKS
-# Takes as input a sequence of note_event lists
-class MidiConverter:
-    def __init__(self, scheduled_sequence):
-        self.scheduled_sequence = scheduled_sequence
-        self.pattern = midi.Pattern()
-        self.convert()
-
-    def convert(self):
-        track = midi.Track()
-        last_tick = 0
-        for tick in self.scheduled_sequence:
-            for note_on_event in self.scheduled_sequence[tick]:
-                note_on_event.tick = tick - last_tick
-                last_tick = tick
-                track.append(note_on_event)
-        self.pattern.append(track)
-
-
-class Policies:
-    def __init__(self, selection_policy, metadata_resolution_policy, channel_mixing_policy):
-        self.selection_policy = selection_policy
-        self.metadata_resolution_policy = metadata_resolution_policy
-        self.channel_mixing_policy = channel_mixing_policy
-
-    @staticmethod
-    def default():
-        return Policies(SoundEventTupleSelectionPolicy.HIGHEST_COUNT, MetadataResolutionPolicy.FIRST_SONG_RESOLUTION,
-                        ChannelMixingPolicy.NO_MIX)
-
-
-# define properties
-midi_file = "bach.mid"
-number_of_notes = 100
-
-# load file
-data = MidiIO(midi_file)
-print data
-
-# get the notes table
-table = data.table
-print data.table
-
-# build the musical transcript
-musical_transcript = MusicalTranscript(table)
-
-# construct the ngram
-ngram = NGram(musical_transcript, 2)
-print ngram
-
-# construct the generator and generate a sequence of sound events
-generator = MusicGenerator(ngram, number_of_notes)
-generator.generate()
-generator.print_sequence()
-
-sequence = generator.sequence
-
-scheduler = Scheduler(sequence)
-converter = MidiConverter(scheduler.scheduled_sequence)
-
-# save to file
-midi.write_midifile("output.mid", converter.pattern)
-
-# play the music
-pygame.init()
-pygame.mixer.music.load("output.mid")
-pygame.mixer.music.play()
-
-while pygame.mixer.music.get_busy():
-    pygame.time.wait(1000)
-
+    def __sizeof__(self):
+        return len(self.frames)
