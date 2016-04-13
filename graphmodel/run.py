@@ -5,6 +5,8 @@ from flask import send_from_directory
 from flask import render_template
 from werkzeug import secure_filename
 
+import Generator
+
 UPLOAD_FOLDER_PREFIX = 'static/files/{}'
 ALLOWED_EXTENSIONS = set(['mid'])
 
@@ -26,7 +28,7 @@ def upload_file():
     remote_addr = next((addr for addr in reversed(route) if addr not in trusted_proxies), request.remote_addr)
     upload_folder = UPLOAD_FOLDER_PREFIX.format(remote_addr)
     if not os.path.exists(upload_folder):
-            os.makedirs(upload_folder)
+        os.makedirs(upload_folder)
 
     songs = os.listdir(upload_folder)
     if request.method == 'POST':
@@ -38,6 +40,8 @@ def upload_file():
                 print(upload_folder)
                 print(destination)
                 f.save(destination)
+                Generator.generate(filename, 20, remote_addr)
+        songs = os.listdir(upload_folder)
         return redirect(url_for('upload_file'))
     return render_template("index.html",
                         title = 'Sebastian Music', songs=songs, upload_folder=upload_folder)

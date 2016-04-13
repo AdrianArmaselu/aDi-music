@@ -4,7 +4,7 @@ from midi.events import EndOfTrackEvent, TimeSignatureEvent, SetTempoEvent, KeyS
     PortEvent, ProgramChangeEvent
 import midi
 
-from graphmodel.Model import Note, OrganizedNotesTable, NotesTable
+from Model import Note, OrganizedNotesTable, NotesTable
 
 __author__ = 'Adisor'
 
@@ -193,5 +193,5 @@ def note_on_event(note):
 
 
 def note_off_event(note):
-    return midi.NoteOnEvent(channel=note.channel, tick=0, pitch=note.pitch,
+    return midi.NoteOffEvent(channel=note.channel, tick=0, pitch=note.pitch,
                             velocity=0)

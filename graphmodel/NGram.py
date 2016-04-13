@@ -1,7 +1,7 @@
 import logging
 import time
-from graphmodel.Model import Frame
-from graphmodel.Policies import ChannelMixingPolicy
+from Model import Frame
+from Policies import ChannelMixingPolicy
 
 __author__ = 'Adisor'
 

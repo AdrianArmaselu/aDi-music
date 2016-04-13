@@ -1,11 +1,11 @@
 import logging
 from random import randint
 import midi
-import pygame
-from graphmodel.MidiIO import MidiIO, to_midi_pattern
-from graphmodel.Model import MusicalTranscript, Frame
-from graphmodel.NGram import NGram
-from graphmodel.Policies import FrameSelectionPolicy, PolicyConfiguration, ChannelMixingPolicy, \
+# import pygame
+from MidiIO import MidiIO, to_midi_pattern
+from Model import MusicalTranscript, Frame
+from NGram import NGram
+from Policies import FrameSelectionPolicy, PolicyConfiguration, ChannelMixingPolicy, \
     MetadataResolutionPolicy
 
 __author__ = 'Adisor'
@@ -89,56 +89,70 @@ def log(current, delta):
     print "time: %d, %d" % (current, delta)
 
 
-# define properties
-# midi_file = "music/Eminem/thewayiam.mid"
-# midi_file = "music/mary.mid"
-midi_file = "music/bach.mid"
-number_of_notes = 20
-policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
-                                           FrameSelectionPolicy.RANDOM,
-                                           MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
-FORMAT = '%(asctime)-12s %(message)s'
-logging.basicConfig(format=FORMAT)
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+def generate(input_file, num_notes, folder='default'):
+    policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
+                                               FrameSelectionPolicy.RANDOM,
+                                               MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
+    data = MidiIO("static/files/%s/%s" % (folder, input_file))
+    musical_transcript = MusicalTranscript(table)
+    ngram = NGram(musical_transcript, 2, policy_configuration)
+    generator = MusicGenerator(ngram, number_of_notes, policy_configuration)
+    generator.generate()
+    pattern = to_midi_pattern(generator.sequence)
+    name = input_file.split('.')[0]
+    midi.write_midifile("static/files/%s/output-%s.mid" % (folder, name), pattern)
 
-logger.info("Starting Application...")
-# load file
-data = MidiIO(midi_file)
-logger.info(data)
-logger.info("Loaded data from file")
+if __name__ == '__main__':
+    # define properties
+    # midi_file = "music/Eminem/thewayiam.mid"
+    # midi_file = "music/mary.mid"
+    midi_file = "music/bach.mid"
+    number_of_notes = 20
+    policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
+                                               FrameSelectionPolicy.RANDOM,
+                                               MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
+    FORMAT = '%(asctime)-12s %(message)s'
+    logging.basicConfig(format=FORMAT)
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
 
-# get the notes table
-table = data.table
-print data.table
+    logger.info("Starting Application...")
+    # load file
+    data = MidiIO(midi_file)
+    logger.info(data)
+    logger.info("Loaded data from file")
 
-# build the musical transcript
-musical_transcript = MusicalTranscript(table)
-# print musical_transcript
-logger.info("Created MusicalTranscript")
+    # get the notes table
+    table = data.table
+    print data.table
 
-# construct the ngram
-ngram = NGram(musical_transcript, 2, policy_configuration)
-# print ngram
-logger.info("Created NGram")
+    # build the musical transcript
+    musical_transcript = MusicalTranscript(table)
+    # print musical_transcript
+    logger.info("Created MusicalTranscript")
 
-# construct the generator and generate a sequence of sound events
-generator = MusicGenerator(ngram, number_of_notes, policy_configuration)
-generator.generate()
-generator.print_sequence()
-logger.info("Created Sequence")
+    # construct the ngram
+    ngram = NGram(musical_transcript, 2, policy_configuration)
+    # print ngram
+    logger.info("Created NGram")
 
-pattern = to_midi_pattern(generator.sequence)
-logger.info("Converted Sequence")
+    # construct the generator and generate a sequence of sound events
+    generator = MusicGenerator(ngram, number_of_notes, policy_configuration)
+    generator.generate()
+    generator.print_sequence()
+    logger.info("Created Sequence")
 
-# save to file
-midi.write_midifile("output.mid", pattern)
-logger.info("Saved to File")
+    pattern = to_midi_pattern(generator.sequence)
+    logger.info("Converted Sequence")
 
-# play the music
-pygame.init()
-pygame.mixer.music.load("output.mid")
-pygame.mixer.music.play()
+    # save to file
+    midi.write_midifile("output.mid", pattern)
+    logger.info("Saved to File")
 
-while pygame.mixer.music.get_busy():
-    pygame.time.wait(1000)
+    # play the music
+    # pygame.init()
+    # pygame.mixer.music.load("output.mid")
+    # pygame.mixer.music.play()
+
+    # while pygame.mixer.music.get_busy():
+    #     pygame.time.wait(1000)
