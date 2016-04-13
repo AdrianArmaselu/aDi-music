@@ -88,15 +88,20 @@ class MusicGenerator(object):
 def log(current, delta):
     print "time: %d, %d" % (current, delta)
 
+FORMAT = '%(asctime)-12s %(message)s'
+logging.basicConfig(format=FORMAT)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
 
 def generate(input_file, num_notes, folder='default'):
     policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
                                                FrameSelectionPolicy.RANDOM,
                                                MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
     data = MidiIO("static/files/%s/%s" % (folder, input_file))
-    musical_transcript = MusicalTranscript(table)
+    musical_transcript = MusicalTranscript(data.table)
     ngram = NGram(musical_transcript, 2, policy_configuration)
-    generator = MusicGenerator(ngram, number_of_notes, policy_configuration)
+    generator = MusicGenerator(ngram, num_notes, policy_configuration)
     generator.generate()
     pattern = to_midi_pattern(generator.sequence)
     name = input_file.split('.')[0]
@@ -111,10 +116,6 @@ if __name__ == '__main__':
     policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
                                                FrameSelectionPolicy.RANDOM,
                                                MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
-    FORMAT = '%(asctime)-12s %(message)s'
-    logging.basicConfig(format=FORMAT)
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
 
     logger.info("Starting Application...")
     # load file

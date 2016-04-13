@@ -41,7 +41,6 @@ def upload_file():
                 print(destination)
                 f.save(destination)
                 Generator.generate(filename, 20, remote_addr)
-        songs = os.listdir(upload_folder)
         return redirect(url_for('upload_file'))
     return render_template("index.html",
                         title = 'Sebastian Music', songs=songs, upload_folder=upload_folder)
