@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block play %}
+<div class="text-center">
+    <section id="step1" >
+        <h2 class="light-green">Step1: Upload Songs in Midi Format, Select a Genre if You Want</h2><br>
+        <h3>Songs</h3>
+        <ul>
+            <script type='text/javascript'>
+            function DeleteSong(elm) {
+                song = $(elm).attr('song-id')
+                $.ajax({
+                    url: '/delete_song',
+                    data: {
+                        song:  $(elm).attr('song')
+                    },
+                    type: 'POST',
+                    success: function(res) {
+                        //console.log("ok")
+                        //var html = $('#refresh-this-div').html();
+                        //$('#refresh-this-div').html(html);
+                        //console.log("end")
+
+                        $('#'+ song).hide();
+                        songs =  $('.songs')
+                        $('#stop-btn').hide()
+                        for(i=0;i<songs.length;i++){
+                            if(songs[i].style.display !== "none")
+                              $('#stop-btn').css("display", "")
+                         }
+                    },
+
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            }
+            </script>
+            <div id="#refresh-this-div">
+            {% for song in songs %}
+                <div id="{{song.split('.')[0]}}" class="songs">
+            <a href="#" onClick="MIDIjs.play('{{upload_folder}}/{{song}}');" ><button class="btn btn-primary" >Play {{song}}</button></a>
+
+<button type="button" class="btn btn-primary" onclick="DeleteSong(this)" song={{upload_folder}}/{{song}} song-id="{{song.split('.')[0]}}">Delete</button>
+</div>
+            {% endfor %}
+                </div>
+            {% if songs %}
+            <a href="#" onClick="MIDIjs.stop();" id="stop-btn"><button class="btn btn-primary" >Stop</button></a><br>
+            {% endif %}
+        </ul>
+        <form action="" method=post enctype=multipart/form-data class="form-horizontal" style="margin-left:20px" >
+            <fieldset>
+                <div class="form-group">
+                    <br>
+                    <span class="btn btn-default btn-file">Browse <input type="file" multiple name="file[]"></span>
+                    <button class="btn btn-primary" type=submit value=Upload >Upload</button>
+                </div>
+            </fieldset>
+        </form>
+        <h3>Genre</h3>
+        <button class="btn btn-primary" >Hip Hop</button>
+        <button class="btn btn-primary" >Pop</button>
+        <button class="btn btn-primary" >Classical</button>
+        <button class="btn btn-primary" >Jazz</button>
+        <button class="btn btn-primary" >Country</button>
+        <button class="btn btn-primary" >Blues</button>
+        <button class="btn btn-primary" >Rock</button>
+        <br><br>
+        <a href="#step2"><button class="btn btn-primary btn-next" >Next</button></a>
+    </section>
+
+    <section id="step2" >
+        <h2 class="light-green">Step2: Generate a New Song Based on Selected Songs/Genre</h2>
+        <a><button class="btn btn-primary">Generate</button></a>
+        <br>
+        <br>
+        <i class="fa fa-spinner fa-pulse fa-3x"></i>
+        <br>
+        <br>
+        <a href="#step3"><button class="btn btn-primary btn-next" >Next</button></a>
+    </section>
+
+    <section id="step3">
+        <h2 class="light-green">Step3: Try It Out!</h2>
+         <a href="#" onClick="MIDIjs.play('/static/output/output.mid');"><button class="btn btn-primary" >Play</button></a>
+         <a href="#" onClick="MIDIjs.stop();"><button class="btn btn-primary" >Stop</button></a><br>
+        <img src="/static/img/sebastian.jpg" class="seb-img" alt="Sebastian is happy you are here" width="25%" height="25%">
+    </section>
+</div>
+{% endblock %}
+
+
+    <p>Music:</p>
+    <audio controls="controls" autoplay="autoplay"></audio>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            Results:
+            <pre>
+                {% for message in messages %}
+                {{ message }}
+                {% endfor %}
+            </pre>
+        {% endif %}
+    {% endwith %}
+
+    <script type='text/javascript'>
+        {% for song in songs %}
+            $('li').click(function(){
+                var str = $(this).text()
+                $('audio').attr('src', '/static/music/'+str);
+            });
+        {% endfor %}
+    </script>

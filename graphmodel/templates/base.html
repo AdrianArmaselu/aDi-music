@@ -2,34 +2,19 @@
 <html lang="en">
 
 <head>
-<meta charset="utf-8">
-<title>{{ title }}</title>
-<link rel="stylesheet" href="https://bootswatch.com/slate/bootstrap.min.css">
-<script type="text/javascript" src="/static/jquery-1.7.1.min.js"></script>
-<style>
-.btn-file {
-    position: relative;
-    overflow: hidden;
-}
-.btn-file input[type=file] {
-    position: absolute;
-    top: 0;
-    right: 0;
-    min-width: 100%;
-    min-height: 100%;
-    font-size: 100px;
-    text-align: right;
-    filter: alpha(opacity=0);
-    opacity: 0;
-    outline: none;
-    background: white;
-    cursor: inherit;
-    display: block;
-}
-</style>
+    <meta charset="utf-8">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="https://bootswatch.com/slate/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link href='https://fonts.googleapis.com/css?family=Montserrat:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="/static/style.css">
+    <script type="text/javascript" src="/static/jquery-1.7.1.min.js"></script>
+    <script type='text/javascript' src='http://www.midijs.net/lib/midi.js'></script>
+
 </head>
-<body>
-<img style="float:right;margin-right:20px" src="/static/img/sebastian.jpg" class="img-thumbnail" alt="Sebastian is happy you are here" width="25%" height="25%">
+
+<body class="content">
 {% block play%}{% endblock %}
 </body>
+
 </html>

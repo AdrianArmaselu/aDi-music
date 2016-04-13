@@ -1,17 +1,16 @@
 from __future__ import print_function # In python 2.7
 import os, sys
-from flask import Flask, request, redirect, url_for
+from flask import Flask, request, redirect, url_for, json
 from flask import send_from_directory
 from flask import render_template
 from werkzeug import secure_filename
 
-
-APP_ROOT = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_FOLDER = 'songs'
+UPLOAD_FOLDER_PREFIX = 'static/files/{}'
 ALLOWED_EXTENSIONS = set(['mid'])
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = os.path.join(APP_ROOT, 'files/{}'.format(UPLOAD_FOLDER))
+
+
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -19,19 +18,36 @@ def allowed_file(filename):
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
-    songs = os.listdir('static/music')
+
+    # create a dir based on user ip address, so each user has his own dir for his music
+    #get user ip address
+    trusted_proxies = {'127.0.0.1'}  # define your own set
+    route = request.access_route + [request.remote_addr]
+    remote_addr = next((addr for addr in reversed(route) if addr not in trusted_proxies), request.remote_addr)
+    upload_folder = UPLOAD_FOLDER_PREFIX.format(remote_addr)
+    if not os.path.exists(upload_folder):
+            os.makedirs(upload_folder)
+
+    songs = os.listdir(upload_folder)
     if request.method == 'POST':
-        for f_name in ['file', 'file2']:
-            f = request.files[f_name]
+        upload_files = request.files.getlist("file[]")
+        for f in upload_files:
             if f and allowed_file(f.filename):
                 filename = secure_filename(f.filename)
-                destination = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                #print(destination, file=sys.stderr)
+                destination = os.path.join(upload_folder, filename)
+                print(upload_folder)
+                print(destination)
                 f.save(destination)
-                #print("Saved", file=sys.stderr)
         return redirect(url_for('upload_file'))
-    return render_template("upload.html",
-                        title = 'Upload 2 MIDI Files', songs=songs)
+    return render_template("index.html",
+                        title = 'Sebastian Music', songs=songs, upload_folder=upload_folder)
+
+
+@app.route('/delete_song', methods=['POST'])
+def delete_song():
+    song = request.form['song']
+    os.remove(song)
+    return redirect(url_for('upload_file'))
 
 # @app.route('/songs')
 # def index():
