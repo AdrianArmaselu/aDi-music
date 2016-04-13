@@ -2,7 +2,6 @@ import logging
 from random import randint
 import midi
 import pygame
-import time
 from graphmodel.MidiIO import MidiIO, to_midi_pattern
 from graphmodel.Model import MusicalTranscript, Frame
 from graphmodel.NGram import NGram
@@ -14,7 +13,9 @@ __author__ = 'Adisor'
 
 # TODO: GENERATE AND PLAY MULTIPLE CHANNELS
 # TODO: BREAK REPEATING LOOPS IN GENERATION
-# TODO: OPTIMIZE GENERATION
+# TODO: Add metadata resolution
+# TODO: test for trigrams, quadgrams, pentagrams, etc
+# TODO: OPTIMIZE NGRAM, CONVERTER (TAKES A LONG TIME FOR LARGE N FOR NGRAMS)
 class MusicGenerator(object):
     """
     This class generates music. Currently, it takes the sound event data from an ngram, but that can change
@@ -44,8 +45,7 @@ class MusicGenerator(object):
         if self.policies.selection_policy is FrameSelectionPolicy.HIGHEST_COUNT:
             next_frame = self.get_next_highest_count_frame(last_sound_event)
         if self.policies.selection_policy is FrameSelectionPolicy.RANDOM:
-            pass
-            # index = randint(0, len(indexes))
+            next_frame = self.get_random_next_frame(last_sound_event)
         return next_frame
 
     def get_next_highest_count_frame(self, last_sound_event):
@@ -60,9 +60,24 @@ class MusicGenerator(object):
                 next_frame = frame
         # this means we reached the end of the samples, pick a random next frame
         if next_frame is None:
-            index = randint(0, len(self.frame_distribution) - 1)
-            next_frame = self.frame_distribution.keys()[index]
+            next_frame = self.get_random_frame()
         return next_frame
+
+    def get_random_next_frame(self, last_sound_event):
+        # this may cause bugs because some sound events have no indexes
+        print "last", last_sound_event
+        if self.ngram.has_index(last_sound_event):
+            indexes = self.ngram.get_sound_event_indexes(last_sound_event)
+            key = randint(0, len(indexes) - 1)
+            index = indexes[key]
+            frame = self.ngram.indexed_frames[index]
+        else:
+            frame = self.get_random_frame()
+        return frame
+
+    def get_random_frame(self):
+        index = randint(0, len(self.frame_distribution) - 1)
+        return self.frame_distribution.keys()[index]
 
     def print_sequence(self):
         print "SEQUENCE:"
@@ -76,12 +91,12 @@ def log(current, delta):
 
 # define properties
 # midi_file = "music/Eminem/thewayiam.mid"
-midi_file = "music/mary.mid"
-number_of_notes = 100
-policy_configuration = PolicyConfiguration(ChannelMixingPolicy.NO_MIX,
-                                           FrameSelectionPolicy.HIGHEST_COUNT,
+# midi_file = "music/mary.mid"
+midi_file = "music/bach.mid"
+number_of_notes = 20
+policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
+                                           FrameSelectionPolicy.RANDOM,
                                            MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
-
 FORMAT = '%(asctime)-12s %(message)s'
 logging.basicConfig(format=FORMAT)
 logger = logging.getLogger()
@@ -95,7 +110,7 @@ logger.info("Loaded data from file")
 
 # get the notes table
 table = data.table
-# print data.table
+print data.table
 
 # build the musical transcript
 musical_transcript = MusicalTranscript(table)
@@ -110,7 +125,7 @@ logger.info("Created NGram")
 # construct the generator and generate a sequence of sound events
 generator = MusicGenerator(ngram, number_of_notes, policy_configuration)
 generator.generate()
-# generator.print_sequence()
+generator.print_sequence()
 logger.info("Created Sequence")
 
 pattern = to_midi_pattern(generator.sequence)

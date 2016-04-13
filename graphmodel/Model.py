@@ -136,6 +136,7 @@ class MusicalTranscript(object):
                 for pitch in table[tick][channel]:
                     notes.append(table[tick][channel][pitch])
                 sound_event = SoundEvent(notes)
+                 # TODO: IF THE NOTE IF A DIFFERENT CHANNEL BUT IT IS PART OF A SOUND EVENT WITH MULTIPLE NOTES, THEN IT IS NOT PART OF THAT CHORD
                 self.tracks[channel].append(sound_event)
 
     def get_sound_events(self, channel):
@@ -181,7 +182,7 @@ class Frame(object):
         return hash(self.sound_events)
 
     def __eq__(self, other):
-        return self.__hash__() == other.__hash__
+        return self.__hash__() == other.__hash__()
 
     def __str__(self):
         string = "Frame:\n"
@@ -252,6 +253,8 @@ class Note(object):
         self.channel = channel
         self.pitch = pitch
         self.velocity = velocity
+
+        # TODO: USE THIS WHEN DOING COMPLEX METADATA RESOLUTION
         self.context = []
 
     # ticks | channel | pitch | velocity

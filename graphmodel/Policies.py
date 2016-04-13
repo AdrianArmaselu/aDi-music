@@ -5,10 +5,11 @@ class PolicyConfiguration:
     """
     Maps values to policies
     """
-    def __init__(self, selection_policy, metadata_resolution_policy, channel_mixing_policy):
-        self.selection_policy = selection_policy
-        self.metadata_resolution_policy = metadata_resolution_policy
+    def __init__(self, channel_mixing_policy, frame_selection_policy, metadata_resolution_policy):
         self.channel_mixing_policy = channel_mixing_policy
+        self.selection_policy = frame_selection_policy
+        self.metadata_resolution_policy = metadata_resolution_policy
+
 
 
 class ChannelMixingPolicy:
