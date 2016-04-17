@@ -5,9 +5,6 @@ from flask import send_from_directory
 from flask import render_template
 from werkzeug import secure_filename
 import random, string
-
-
-
 import Generator
 
 UPLOAD_FOLDER_PREFIX = 'static/files/{}'
@@ -41,6 +38,7 @@ def upload_file():
                 filename = secure_filename(f.filename)
                 destination = os.path.join(upload_folder, filename)
                 f.save(destination)
+                Generator.generate(filename, 3000, upload_folder)
         return redirect(url_for('upload_file'))
 
     songs = os.listdir(upload_folder)
