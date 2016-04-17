@@ -1,9 +1,12 @@
 from __future__ import print_function # In python 2.7
 import os, sys
-from flask import Flask, request, redirect, url_for, json
+from flask import Flask, request, redirect, url_for, json, make_response,request
 from flask import send_from_directory
 from flask import render_template
 from werkzeug import secure_filename
+import random, string
+
+
 
 import Generator
 
@@ -21,29 +24,38 @@ def allowed_file(filename):
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
 
-    # create a dir based on user ip address, so each user has his own dir for his music
-    #get user ip address
-    trusted_proxies = {'127.0.0.1'}  # define your own set
-    route = request.access_route + [request.remote_addr]
-    remote_addr = next((addr for addr in reversed(route) if addr not in trusted_proxies), request.remote_addr)
-    upload_folder = UPLOAD_FOLDER_PREFIX.format(remote_addr)
-    if not os.path.exists(upload_folder):
-        os.makedirs(upload_folder)
+    folder_name = request.cookies.get('foldername')
+    if not folder_name:
+        print("no foldername")
+        folder_name = get_foldername()
+        folder_path = os.makedirs(UPLOAD_FOLDER_PREFIX.format(folder_name))
+        print(folder_path)
 
-    songs = os.listdir(upload_folder)
+    #folder_name = request.cookies.get('foldername')
+    upload_folder = UPLOAD_FOLDER_PREFIX.format(folder_name)
+
     if request.method == 'POST':
         upload_files = request.files.getlist("file[]")
         for f in upload_files:
             if f and allowed_file(f.filename):
                 filename = secure_filename(f.filename)
                 destination = os.path.join(upload_folder, filename)
-                print(upload_folder)
-                print(destination)
                 f.save(destination)
-                Generator.generate(filename, 20, remote_addr)
         return redirect(url_for('upload_file'))
-    return render_template("index.html",
-                        title = 'Sebastian Music', songs=songs, upload_folder=upload_folder)
+
+    songs = os.listdir(upload_folder)
+    resp = make_response(render_template("index.html",
+                        title = 'Sebastian Music', songs=songs, upload_folder=upload_folder))
+    resp.set_cookie('foldername', folder_name)
+
+    return resp
+
+def get_foldername():
+    STRING_LENGTH = 20
+    folder_name = ''.join(random.choice(string.lowercase) for i in range(STRING_LENGTH))
+    while os.path.exists(folder_name):
+        folder_name = ''.join(random.choice(string.lowercase) for i in range(STRING_LENGTH))
+    return folder_name
 
 
 @app.route('/delete_song', methods=['POST'])
