@@ -1,69 +1,9 @@
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 import sys
-import midi
-from midi.events import EndOfTrackEvent, TimeSignatureEvent, SetTempoEvent, KeySignatureEvent, ControlChangeEvent, \
-    PortEvent, ProgramChangeEvent, NoteOffEvent, NoteOnEvent
+
+from graphmodel import Utils
 
 __author__ = 'Adisor'
-
-music_control_events = [TimeSignatureEvent, SetTempoEvent, KeySignatureEvent, ControlChangeEvent, PortEvent,
-                        ProgramChangeEvent]
-"""
-Consider: Polyphonic Aftertouch, Channel Aftertouch - how much a key is pressed more - for now we can ignore
-Port Events can be ignored
-Control Change and aftertouch - modulation and pitch bend
-check MIT music21
-"""
-
-
-def get_event_type(event):
-    return type(event)
-
-
-def is_meta_event(event):
-    event_type = get_event_type(event)
-    return event_type != NoteOnEvent and event_type != NoteOffEvent
-
-
-def is_music_control_event(event):
-    """
-    Checks to see if the event is an event that sets music control - meaning tempo, key signature etc.
-    Object event must be one of the following:  TimeSignatureEvent, SetTempoEvent, KeySignatureEvent,
-    ControlChangeEvent, PortEvent, ProgramChangeEvent
-    """
-    event_type = get_event_type(event)
-    boolean = False
-    for control_event in music_control_events:
-        boolean = boolean or event_type is control_event
-    return boolean
-
-
-def has_note_ended(event):
-    event_type = get_event_type(event)
-    return event_type == NoteOffEvent or (event_type == NoteOnEvent and event.velocity == 0)
-
-
-def is_new_note(event):
-    event_type = get_event_type(event)
-    return event_type == NoteOnEvent and event.velocity > 0
-
-
-def is_chord(sound_event):
-    return is_chord(sound_event.notes)
-
-
-def is_chord(notes):
-    return len(notes) > 0
-
-
-def note_on_event(note):
-    return midi.NoteOnEvent(channel=note.channel, tick=0, pitch=note.pitch,
-                            velocity=note.velocity)
-
-
-def note_off_event(note):
-    return midi.NoteOnEvent(channel=note.channel, tick=0, pitch=note.pitch,
-                            velocity=0)
 
 
 class NotesTable(object):
@@ -336,28 +276,12 @@ class Note(object):
              self.channel, self.pitch, self.velocity))
 
 
-def is_time_signature_event(event):
-    return get_event_type(event) == TimeSignatureEvent
+def is_chord(sound_event):
+    return is_chord(sound_event.notes)
 
 
-def is_set_tempo_event(event):
-    return get_event_type(event) == SetTempoEvent
-
-
-def is_key_signature_event(event):
-    return get_event_type(event) == KeySignatureEvent
-
-
-def is_control_change_event(event):
-    return get_event_type(event) == ControlChangeEvent
-
-
-def is_port_event(event):
-    return get_event_type(event) == PortEvent
-
-
-def is_program_change_event(event):
-    return get_event_type(event) == ProgramChangeEvent
+def is_chord(notes):
+    return len(notes) > 0
 
 
 class MetaContext:
@@ -374,15 +298,15 @@ class MetaContext:
                            self.port_event, self.program_event)
 
     def update(self, event):
-        if is_time_signature_event(event):
+        if Utils.is_time_signature_event(event):
             self.time_signature_event = event
-        if is_set_tempo_event(event):
+        if Utils.is_set_tempo_event(event):
             self.tempo_event = event
-        if is_key_signature_event(event):
+        if Utils.is_key_signature_event(event):
             self.key_signature_event = event
-        if is_control_change_event(event):
+        if Utils.is_control_change_event(event):
             self.control_event = event
-        if is_port_event(event):
+        if Utils.is_port_event(event):
             self.port_event = event
-        if is_program_change_event(event):
+        if Utils.is_program_change_event(event):
             self.program_event = event

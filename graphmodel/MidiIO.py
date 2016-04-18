@@ -3,9 +3,8 @@ from collections import OrderedDict
 from midi.events import EndOfTrackEvent
 import midi
 
-from Model import Note, OrganizedNotesTable, NotesTable, MetaContext, is_meta_event, is_music_control_event, \
-    is_new_note, \
-    has_note_ended, note_on_event, note_off_event
+from Model import Note, OrganizedNotesTable, NotesTable, MetaContext
+from graphmodel import Utils
 
 __author__ = 'Adisor'
 
@@ -36,16 +35,16 @@ class MidiIO:
     # TODO: timeline_tick should be reset on every track
     def extract_track_data(self, track, running_notes, timeline_tick, meta_context):
         for event in track:
-            if is_meta_event(event) and is_music_control_event(event):
+            if Utils.is_meta_event(event) and Utils.is_music_control_event(event):
                 meta_context.update(event)
-            if is_meta_event(event):
+            if Utils.is_meta_event(event):
                 continue
             timeline_tick += event.tick
-            if is_new_note(event):
+            if Utils.is_new_note(event):
                 note = Note(timeline_tick, event.tick, 0, event.channel, event.pitch, event.velocity,
                             meta_context.copy())
                 running_notes.add(note)
-            if has_note_ended(event):
+            if Utils.has_note_ended(event):
                 note = running_notes.get_note(event.channel, event.pitch)
                 note.duration_ticks = timeline_tick - note.timeline_tick
                 self.table.add(note)
@@ -117,8 +116,8 @@ class Scheduler:
             self.scheduled_sequence[start] = []
         if start + note.duration_ticks not in self.scheduled_sequence:
             self.scheduled_sequence[start + note.duration_ticks] = []
-        self.scheduled_sequence[start].append(note_on_event(note))
-        self.scheduled_sequence[start + note.duration_ticks].append(note_off_event(note))
+        self.scheduled_sequence[start].append(Utils.note_on_event(note))
+        self.scheduled_sequence[start + note.duration_ticks].append(Utils.note_off_event(note))
 
 
 # TODO: HANDLE MULTIPLE CHANNELS INTO MULTIPLE TRACKS

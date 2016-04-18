@@ -17,7 +17,7 @@ logger.setLevel(logging.INFO)
 # midi_file = "music/Eminem/thewayiam.mid"
 # midi_file = "music/mary.mid"
 midi_file = "music/bach.mid"
-number_of_notes = 20
+number_of_notes = 200
 policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
                                            FrameSelectionPolicy.RANDOM,
                                            MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
