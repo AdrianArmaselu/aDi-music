@@ -147,4 +147,4 @@ class MidiConverter:
                 last_tick = tick
                 track.append(note_on_event)
         track.append(EndOfTrackEvent(tick=1))
-        self.pattern.append(track)
+        self.pattern = midi.Pattern([track])
