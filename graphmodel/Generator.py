@@ -98,14 +98,14 @@ def generate(input_file, num_notes, folder='default'):
     policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
                                                FrameSelectionPolicy.RANDOM,
                                                MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
-    data = MidiIO("static/files/%s/%s" % (folder, input_file))
+    data = MidiIO("%s/%s" % (folder, input_file))
     musical_transcript = MusicalTranscript(data.table)
     ngram = NGram(musical_transcript, 2, policy_configuration)
     generator = MusicGenerator(ngram, num_notes, policy_configuration)
     generator.generate()
     pattern = to_midi_pattern(generator.sequence)
     name = input_file.split('.')[0]
-    midi.write_midifile("static/files/%s/output-%s.mid" % (folder, name), pattern)
+    midi.write_midifile("%s/output-%s.mid" % (folder, name), pattern)
 
 if __name__ == '__main__':
     # define properties
