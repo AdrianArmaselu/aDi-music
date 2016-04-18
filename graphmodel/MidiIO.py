@@ -1,53 +1,13 @@
 from collections import OrderedDict
-from midi import NoteOnEvent, NoteOffEvent
-from midi.events import EndOfTrackEvent, TimeSignatureEvent, SetTempoEvent, KeySignatureEvent, ControlChangeEvent, \
-    PortEvent, ProgramChangeEvent
+
+from midi.events import EndOfTrackEvent
 import midi
 
-from Model import Note, OrganizedNotesTable, NotesTable
+from Model import Note, OrganizedNotesTable, NotesTable, MetaContext, is_meta_event, is_music_control_event, \
+    is_new_note, \
+    has_note_ended, note_on_event, note_off_event
 
 __author__ = 'Adisor'
-
-music_control_events = [TimeSignatureEvent, SetTempoEvent, KeySignatureEvent, ControlChangeEvent, PortEvent,
-                        ProgramChangeEvent]
-"""
-Consider: Polyphonic Aftertouch, Channel Aftertouch - how much a key is pressed more - for now we can ignore
-Port Events can be ignored
-Control Change and aftertouch - modulation and pitch bend
-check MIT music21
-"""
-
-
-def get_event_type(event):
-    return type(event)
-
-
-def is_meta_event(event):
-    event_type = get_event_type(event)
-    return event_type is not NoteOnEvent and event_type != NoteOffEvent
-
-
-def is_music_control_event(event):
-    """
-    Checks to see if the event is an event that sets music control - meaning tempo, key signature etc.
-    Object event must be one of the following:  TimeSignatureEvent, SetTempoEvent, KeySignatureEvent,
-    ControlChangeEvent, PortEvent, ProgramChangeEvent
-    """
-    event_type = get_event_type(event)
-    boolean = False
-    for control_event in music_control_events:
-        boolean = boolean or event_type is control_event
-    return boolean
-
-
-def has_note_ended(event):
-    event_type = get_event_type(event)
-    return event_type == NoteOffEvent or (event_type == NoteOnEvent and event.velocity == 0)
-
-
-def is_new_note(event):
-    event_type = get_event_type(event)
-    return event_type == NoteOnEvent and event.velocity > 0
 
 
 class MidiIO:
@@ -69,18 +29,21 @@ class MidiIO:
     def build_table(self):
         running_notes = RunningNotesTable()
         timeline_tick = 0
+        meta_context = MetaContext()
         for track in self.pattern:
-            timeline_tick = self.extract_track_data(track, running_notes, timeline_tick)
+            timeline_tick = self.extract_track_data(track, running_notes, timeline_tick, meta_context)
 
-    def extract_track_data(self, track, running_notes, timeline_tick):
+    # TODO: timeline_tick should be reset on every track
+    def extract_track_data(self, track, running_notes, timeline_tick, meta_context):
         for event in track:
-            # if is_meta_event(event) and is_music_control_event(event):
-
+            if is_meta_event(event) and is_music_control_event(event):
+                meta_context.update(event)
             if is_meta_event(event):
                 continue
             timeline_tick += event.tick
             if is_new_note(event):
-                note = Note(timeline_tick, event.tick, 0, event.channel, event.pitch, event.velocity)
+                note = Note(timeline_tick, event.tick, 0, event.channel, event.pitch, event.velocity,
+                            meta_context.copy())
                 running_notes.add(note)
             if has_note_ended(event):
                 note = running_notes.get_note(event.channel, event.pitch)
@@ -185,13 +148,3 @@ class MidiConverter:
                 track.append(note_on_event)
         track.append(EndOfTrackEvent(tick=1))
         self.pattern.append(track)
-
-
-def note_on_event(note):
-    return midi.NoteOnEvent(channel=note.channel, tick=0, pitch=note.pitch,
-                            velocity=note.velocity)
-
-
-def note_off_event(note):
-    return midi.NoteOnEvent(channel=note.channel, tick=0, pitch=note.pitch,
-                            velocity=0)

@@ -1,7 +1,51 @@
 from collections import OrderedDict, defaultdict
 import sys
+import midi
+from midi.events import EndOfTrackEvent, TimeSignatureEvent, SetTempoEvent, KeySignatureEvent, ControlChangeEvent, \
+    PortEvent, ProgramChangeEvent, NoteOffEvent, NoteOnEvent
 
 __author__ = 'Adisor'
+
+music_control_events = [TimeSignatureEvent, SetTempoEvent, KeySignatureEvent, ControlChangeEvent, PortEvent,
+                        ProgramChangeEvent]
+"""
+Consider: Polyphonic Aftertouch, Channel Aftertouch - how much a key is pressed more - for now we can ignore
+Port Events can be ignored
+Control Change and aftertouch - modulation and pitch bend
+check MIT music21
+"""
+
+
+def get_event_type(event):
+    return type(event)
+
+
+def is_meta_event(event):
+    event_type = get_event_type(event)
+    return event_type != NoteOnEvent and event_type != NoteOffEvent
+
+
+def is_music_control_event(event):
+    """
+    Checks to see if the event is an event that sets music control - meaning tempo, key signature etc.
+    Object event must be one of the following:  TimeSignatureEvent, SetTempoEvent, KeySignatureEvent,
+    ControlChangeEvent, PortEvent, ProgramChangeEvent
+    """
+    event_type = get_event_type(event)
+    boolean = False
+    for control_event in music_control_events:
+        boolean = boolean or event_type is control_event
+    return boolean
+
+
+def has_note_ended(event):
+    event_type = get_event_type(event)
+    return event_type == NoteOffEvent or (event_type == NoteOnEvent and event.velocity == 0)
+
+
+def is_new_note(event):
+    event_type = get_event_type(event)
+    return event_type == NoteOnEvent and event.velocity > 0
 
 
 def is_chord(sound_event):
@@ -10,6 +54,16 @@ def is_chord(sound_event):
 
 def is_chord(notes):
     return len(notes) > 0
+
+
+def note_on_event(note):
+    return midi.NoteOnEvent(channel=note.channel, tick=0, pitch=note.pitch,
+                            velocity=note.velocity)
+
+
+def note_off_event(note):
+    return midi.NoteOnEvent(channel=note.channel, tick=0, pitch=note.pitch,
+                            velocity=0)
 
 
 class NotesTable(object):
@@ -136,7 +190,7 @@ class MusicalTranscript(object):
                 for pitch in table[tick][channel]:
                     notes.append(table[tick][channel][pitch])
                 sound_event = SoundEvent(notes)
-                 # TODO: IF THE NOTE IF A DIFFERENT CHANNEL BUT IT IS PART OF A SOUND EVENT WITH MULTIPLE NOTES, THEN IT IS NOT PART OF THAT CHORD
+                # TODO: IF THE NOTE IF A DIFFERENT CHANNEL BUT IT IS PART OF A SOUND EVENT WITH MULTIPLE NOTES, THEN IT IS NOT PART OF THAT CHORD
                 self.tracks[channel].append(sound_event)
 
     def get_sound_events(self, channel):
@@ -235,7 +289,7 @@ class Note(object):
     The class that represents a musical note. Contains all the necessary data.
     """
 
-    def __init__(self, timeline_tick, wait_ticks, duration_ticks, channel, pitch, velocity):
+    def __init__(self, timeline_tick, wait_ticks, duration_ticks, channel, pitch, velocity, meta_context):
         # timestamp from original song
         self.timeline_tick = timeline_tick
 
@@ -254,6 +308,7 @@ class Note(object):
         self.pitch = pitch
         self.velocity = velocity
 
+        self.meta_context = meta_context
         # TODO: USE THIS WHEN DOING COMPLEX METADATA RESOLUTION
         self.context = []
 
@@ -279,3 +334,55 @@ class Note(object):
             (self.timeline_tick, self.wait_ticks, self.duration_ticks,
              self.previous_delta_ticks, self.next_delta_ticks,
              self.channel, self.pitch, self.velocity))
+
+
+def is_time_signature_event(event):
+    return get_event_type(event) == TimeSignatureEvent
+
+
+def is_set_tempo_event(event):
+    return get_event_type(event) == SetTempoEvent
+
+
+def is_key_signature_event(event):
+    return get_event_type(event) == KeySignatureEvent
+
+
+def is_control_change_event(event):
+    return get_event_type(event) == ControlChangeEvent
+
+
+def is_port_event(event):
+    return get_event_type(event) == PortEvent
+
+
+def is_program_change_event(event):
+    return get_event_type(event) == ProgramChangeEvent
+
+
+class MetaContext:
+    def __init__(self, time_signature=None, tempo=None, key_signature=None, control=None, port=None, program=None):
+        self.time_signature_event = time_signature
+        self.tempo_event = tempo
+        self.key_signature_event = key_signature
+        self.control_event = control
+        self.port_event = port
+        self.program_event = program
+
+    def copy(self):
+        return MetaContext(self.time_signature_event, self.tempo_event, self.key_signature_event, self.control_event,
+                           self.port_event, self.program_event)
+
+    def update(self, event):
+        if is_time_signature_event(event):
+            self.time_signature_event = event
+        if is_set_tempo_event(event):
+            self.tempo_event = event
+        if is_key_signature_event(event):
+            self.key_signature_event = event
+        if is_control_change_event(event):
+            self.control_event = event
+        if is_port_event(event):
+            self.port_event = event
+        if is_program_change_event(event):
+            self.program_event = event
