@@ -2,22 +2,24 @@ import logging
 import midi
 from graphmodel.Generator import MusicGenerator
 from graphmodel.MidiIO import MidiIO, to_midi_pattern
-from graphmodel.Model import MusicalTranscript
+from graphmodel.Model import MusicalTranscript, Note
 from graphmodel.NGram import NGram
 from graphmodel.Policies import PolicyConfiguration, ChannelMixingPolicy, FrameSelectionPolicy, MetadataResolutionPolicy
 
 __author__ = 'Adisor'
 
+Note.SHOW_CONTEXT_INFO = True
 FORMAT = '%(asctime)-12s %(message)s'
 logging.basicConfig(format=FORMAT)
 logger = logging.getLogger()
+# logger.setLevel(logging.WARN)
 logger.setLevel(logging.INFO)
 
 # define properties
 # midi_file = "music/Eminem/thewayiam.mid"
 # midi_file = "music/mary.mid"
 midi_file = "music/bach.mid"
-number_of_notes = 200
+num_sound_events = 2
 policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
                                            FrameSelectionPolicy.RANDOM,
                                            MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
@@ -30,8 +32,8 @@ logger.info(data)
 logger.info("Loaded data from file")
 
 # get the notes table
-table = data.table
-print data.table
+table = data.notes_table
+logger.info(data.notes_table)
 
 # build the musical transcript
 musical_transcript = MusicalTranscript(table)
@@ -39,12 +41,12 @@ musical_transcript = MusicalTranscript(table)
 logger.info("Created MusicalTranscript")
 
 # construct the ngram
-ngram = NGram(musical_transcript, 2, policy_configuration)
+ngram = NGram(musical_transcript, 2)
 # print ngram
 logger.info("Created NGram")
 
 # construct the generator and generate a sequence of sound events
-generator = MusicGenerator(ngram, number_of_notes, policy_configuration)
+generator = MusicGenerator(ngram, num_sound_events, policy_configuration)
 generator.generate()
 generator.print_sequence()
 logger.info("Created Sequence")
@@ -57,7 +59,8 @@ midi.write_midifile("devrun.mid", pattern)
 logger.info("Saved to File")
 
 pattern = midi.read_midifile("devrun.mid")
-print pattern
+logger.info(pattern)
+# print pattern
 
 # play the music
 # pygame.init()

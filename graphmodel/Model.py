@@ -1,7 +1,7 @@
 from collections import OrderedDict
 import sys
 
-from graphmodel import Utils
+from graphmodel import MidiUtils
 
 __author__ = 'Adisor'
 
@@ -228,13 +228,11 @@ class Note(object):
     """
     The class that represents a musical note. Contains all the necessary data.
     """
+    SHOW_CONTEXT_INFO = False
 
-    def __init__(self, timeline_tick, wait_ticks, duration_ticks, channel, pitch, velocity, meta_context):
+    def __init__(self, timeline_tick, duration_ticks, channel, pitch, velocity, meta_context=None):
         # timestamp from original song
         self.timeline_tick = timeline_tick
-
-        # ticks before playing this note
-        self.wait_ticks = wait_ticks
 
         # how long to play this note (not how many ticks until next note)
         self.duration_ticks = duration_ticks
@@ -267,13 +265,17 @@ class Note(object):
         return self.encode() == other.encode()
 
     def __str__(self):
-        return (
-            "Note(start_tick:%d, wait_ticks:%d, ticks:%d, "
-            "previous_delta_ticks:%d, next_delta_ticks:%d, "
-            "channel:%d, pitch:%d, velocity:%d)" %
-            (self.timeline_tick, self.wait_ticks, self.duration_ticks,
+        string = (
+            "Note(timeline:%d, t:%d, "
+            "dt-:%d, dt+:%d, "
+            "ch:%d, pitch:%d, vol:%d" %
+            (self.timeline_tick, self.duration_ticks,
              self.previous_delta_ticks, self.next_delta_ticks,
              self.channel, self.pitch, self.velocity))
+        if self.SHOW_CONTEXT_INFO:
+            string += (" meta_context: %s" % self.meta_context)
+        string += ")"
+        return string
 
 
 def is_chord(sound_event):
@@ -298,15 +300,29 @@ class MetaContext:
                            self.port_event, self.program_event)
 
     def update(self, event):
-        if Utils.is_time_signature_event(event):
+        if MidiUtils.is_time_signature_event(event):
             self.time_signature_event = event
-        if Utils.is_set_tempo_event(event):
+        if MidiUtils.is_set_tempo_event(event):
             self.tempo_event = event
-        if Utils.is_key_signature_event(event):
+        if MidiUtils.is_key_signature_event(event):
             self.key_signature_event = event
-        if Utils.is_control_change_event(event):
+        if MidiUtils.is_control_change_event(event):
             self.control_event = event
-        if Utils.is_port_event(event):
+        if MidiUtils.is_port_event(event):
             self.port_event = event
-        if Utils.is_program_change_event(event):
+        if MidiUtils.is_program_change_event(event):
             self.program_event = event
+
+    def update_global_context(self, global_context):
+        if global_context.time_signature_event:
+            self.time_signature_event = global_context.time_signature_event
+        if global_context.key_signature_event:
+            self.key_signature_event = global_context.key_signature_event
+        if global_context.tempo_event:
+            self.key_signature_event = global_context.tempo_event
+
+    def __str__(self):
+        string = str(self.time_signature_event) + ", " + str(self.tempo_event) + ", "
+        string += str(self.key_signature_event) + ", " + str(self.control_event) + ", " + str(self.port_event) + ", "
+        string += str(self.program_event)
+        return string

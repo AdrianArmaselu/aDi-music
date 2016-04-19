@@ -19,20 +19,22 @@ __author__ = 'Adisor'
 class MusicGenerator(object):
     """
     This class generates music. Currently, it takes the sound event data from an ngram, but that can change
+
+    IMPORTANT: REFRAIN FROM ACCESSING INTERNAL ATTRIBUTES OF NGRAM CLASS TO REDUCE COUPLING
+
     """
 
     def __init__(self, ngram, song_duration, policy_configuration):
         self.ngram = ngram
         # measured in number of notes
-        self.frame_distribution = ngram.frame_distribution
         self.song_duration = song_duration
         self.policies = policy_configuration
         self.sequence = []
 
     def generate(self):
         # first frame
-        frame = self.frame_distribution.keys()[0]
-        for i in range(0, self.song_duration, 1):
+        frame = self.ngram.get_first_frame()
+        while len(self.sequence) < self.song_duration:
             for sound_event in frame.sound_events:
                 self.sequence.append(sound_event)
             frame = self.next_frame(frame.last_sound_event())
@@ -53,36 +55,32 @@ class MusicGenerator(object):
         max_count = 0
         indexes = self.ngram.get_sound_event_indexes(last_sound_event)
         for index in indexes:
-            frame = self.ngram.indexed_frames[index]
-            count = self.frame_distribution[frame]
+            frame = self.ngram.get_indexed_frame(index)
+            count = self.ngram.get_frame_count(frame)
             if frame.first() == last_sound_event and (count > max_count):
                 max_count = count
                 next_frame = frame
         # this means we reached the end of the samples, pick a random next frame
         if next_frame is None:
-            next_frame = self.get_random_frame()
+            next_frame = self.ngram.get_random_frame()
         return next_frame
 
     def get_random_next_frame(self, last_sound_event):
         # this may cause bugs because some sound events have no indexes
-        print "last", last_sound_event
         if self.ngram.has_index(last_sound_event):
             indexes = self.ngram.get_sound_event_indexes(last_sound_event)
             key = randint(0, len(indexes) - 1)
             index = indexes[key]
-            frame = self.ngram.indexed_frames[index]
+            frame = self.ngram.get_indexed_frame(index)
         else:
-            frame = self.get_random_frame()
+            frame = self.ngram.get_random_frame()
         return frame
-
-    def get_random_frame(self):
-        index = randint(0, len(self.frame_distribution) - 1)
-        return self.frame_distribution.keys()[index]
 
     def print_sequence(self):
         print "SEQUENCE:"
         for item in self.sequence:
             print item
+
 
 FORMAT = '%(asctime)-12s %(message)s'
 logging.basicConfig(format=FORMAT)
@@ -90,14 +88,14 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-def generate(input_file, num_notes, folder='default'):
+def generate(input_file, num_sound_events, folder='default'):
     policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
                                                FrameSelectionPolicy.RANDOM,
                                                MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
     data = MidiIO("%s/%s" % (folder, input_file))
-    musical_transcript = MusicalTranscript(data.table)
-    ngram = NGram(musical_transcript, 2, policy_configuration)
-    generator = MusicGenerator(ngram, num_notes, policy_configuration)
+    musical_transcript = MusicalTranscript(data.notes_table)
+    ngram = NGram(musical_transcript, 2)
+    generator = MusicGenerator(ngram, num_sound_events, policy_configuration)
     generator.generate()
     pattern = to_midi_pattern(generator.sequence)
     name = input_file.split('.')[0]
