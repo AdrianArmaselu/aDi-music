@@ -6,6 +6,8 @@ from graphmodel import MidiUtils
 __author__ = 'Adisor'
 
 
+# TODO: CACHE HASH
+# TODO: DIVERSIFY CHORDS OVER CHANNELS SEE WHAT HAPPENS
 class NotesTable(object):
     """
     Base class used for storing Note objects in a table
@@ -110,7 +112,7 @@ class MusicTranscript(object):
     Simple data structure for storing sound events on multiple tracks
     """
 
-    def __init__(self):
+    def __init__(self, ):
         self.tracks = {}
 
     def add_tracks(self, notes_table):
@@ -152,6 +154,12 @@ class MusicTranscript(object):
 
     def get_tracks(self):
         return self.tracks.values()
+
+    def add_sound_event(self, sound_event):
+        channel = sound_event.get_channel()
+        if channel not in self.tracks:
+            self.tracks[channel] = []
+        self.tracks[channel].append(sound_event)
 
 
 class Frame(object):
@@ -203,9 +211,13 @@ class SoundEvent(object):
 
     def __init__(self, notes):
         # sorted by duration
-        self.notes = ()
-        for note in sorted(notes, key=lambda note: note.next_delta_ticks):
-            self.notes += (note,)
+        # self.notes = ()
+        # for note in sorted(notes, key=lambda note: note.next_delta_ticks):
+        #     self.notes += (note,)
+        self.notes = notes
+
+    def get_channel(self):
+        return self.notes[0].channel
 
     def first(self):
         return self.notes[0]
@@ -239,7 +251,7 @@ class Note(object):
     """
     SHOW_CONTEXT_INFO = False
 
-    def __init__(self, timeline_tick, duration_ticks, channel, pitch, velocity, meta_context=None):
+    def __init__(self, timeline_tick, duration_ticks, event, meta_context=None):
         # timestamp from original song
         self.timeline_tick = timeline_tick
 
@@ -251,9 +263,9 @@ class Note(object):
 
         # ticks to next sound event
         self.next_delta_ticks = 0
-        self.channel = channel
-        self.pitch = pitch
-        self.velocity = velocity
+        self.channel = event.channel
+        self.pitch = event.pitch
+        self.velocity = event.velocity
 
         self.meta_context = meta_context
         # TODO: USE THIS WHEN DOING COMPLEX METADATA RESOLUTION
@@ -308,7 +320,9 @@ class MetaContext:
         return MetaContext(self.time_signature_event, self.tempo_event, self.key_signature_event, self.control_event,
                            self.port_event, self.program_event)
 
-    def update(self, event):
+    def update_from_event(self, event):
+        if not MidiUtils.is_music_control_event(event):
+            return
         if MidiUtils.is_time_signature_event(event):
             self.time_signature_event = event
         if MidiUtils.is_set_tempo_event(event):
@@ -322,13 +336,23 @@ class MetaContext:
         if MidiUtils.is_program_change_event(event):
             self.program_event = event
 
-    def update_global_context(self, global_context):
-        if global_context.time_signature_event:
-            self.time_signature_event = global_context.time_signature_event
-        if global_context.key_signature_event:
-            self.key_signature_event = global_context.key_signature_event
-        if global_context.tempo_event:
-            self.tempo_event = global_context.tempo_event
+    def update_from_context(self, context):
+
+        # global parameters
+        if context.time_signature_event:
+            self.time_signature_event = context.time_signature_event
+        if context.key_signature_event:
+            self.key_signature_event = context.key_signature_event
+        if context.tempo_event:
+            self.tempo_event = context.tempo_event
+
+        # track parameters
+        if context.control_event:
+            self.control_event = context.control_event
+        if context.port_event:
+            self.port_event = context.port_event
+        if context.program_event:
+            self.program_event = context.program_event
 
     def __str__(self):
         string = str(self.time_signature_event) + ", " + str(self.tempo_event) + ", "

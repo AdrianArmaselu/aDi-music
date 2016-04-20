@@ -20,7 +20,7 @@ logger.setLevel(logging.INFO)
 
 def run_single_channel():
     # construct the ngram
-    ngram = SingleChannelNGram(2)
+    ngram = SingleChannelNGram(20)
     ngram.build_from_transcript(transcript)
     # print ngram
     logger.info("Created NGram")
@@ -34,7 +34,7 @@ def run_single_channel():
 
 def run_multi_channel():
     # construct the ngram
-    ngram = MultiChannelNGram(2)
+    ngram = MultiChannelNGram(20)
     ngram.build_from_transcript(transcript)
     logger.info("Created NGram")
 
@@ -47,10 +47,10 @@ def run_multi_channel():
 
 
 # define properties
-midi_file = "music/Eminem/thewayiam.mid"
+# midi_file = "music/Eminem/thewayiam.mid"
 # midi_file = "music/mary.mid"
-# midi_file = "music/bach.mid"
-num_sound_events = 100
+midi_file = "music/bach.mid"
+num_sound_events = 200
 policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
                                            FrameSelectionPolicy.RANDOM,
                                            MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
