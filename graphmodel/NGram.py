@@ -13,34 +13,37 @@ TODO: Methods for increasing distribution counts:
 """
 
 
-class NGram(object):
+class SingleChannelNGram(object):
     """
     Builds a distribution map that counts the number of unique frames in the song. Key is frame, value is count
     """
 
-    def __init__(self, musical_transcript, n):
-        self.music_transcript = musical_transcript
+    def __init__(self, n):
         self.frame_size = n
         self.frame_distribution = {}
         # maps indexes to frames
         self.indexed_frames = {}
         # maps sound events to the index in frame_distribution where they start in a frame
         self.sound_event_indexes = {}
-        self.__build__()
 
-    def __build__(self):
+    def build_from_transcript(self, music_transcript):
+        for track in music_transcript.tracks:
+            self.build_from_track(music_transcript.get_sound_events(track))
+
+    def build_from_track(self, track):
         frames = OrderedFrames(self.frame_size)
-        for track in self.music_transcript.tracks:
-            for sound_event in self.music_transcript.get_sound_events(track):
-                frames.add(sound_event)
-                # update the count with the first frame
-                if frames.is_first_frame_full():
-                    frame = frames.remove_first()
-                    if frame not in self.frame_distribution:
-                        self.frame_distribution[frame] = 0
-                    self.frame_distribution[frame] += 1
-                    self.index_frame(frame)
-            frames.reset()
+        self.build_frames(frames, track)
+
+    def build_frames(self, frames, track):
+        for sound_event in track:
+            frames.add(sound_event)
+            # update the count with the first frame
+            if frames.is_first_frame_full():
+                frame = frames.remove_first()
+                if frame not in self.frame_distribution:
+                    self.frame_distribution[frame] = 0
+                self.frame_distribution[frame] += 1
+                self.index_frame(frame)
 
     def index_frame(self, frame):
         key = hash(frame)
@@ -77,6 +80,31 @@ class NGram(object):
         for frame in self.frame_distribution:
             string += str(self.frame_distribution[frame]) + ": " + str(frame) + "\n"
         return string
+
+
+class MultiChannelNGram:
+    """
+    Builds ngram for each channel
+    """
+
+    def __init__(self, size):
+        self.channel_ngrams = {}
+        self.size = size
+
+    def build_from_transcript(self, music_transcript):
+        for channel in music_transcript.get_channels():
+            self.add_channel_track(channel, music_transcript.get_track(channel))
+
+    def add_channel_track(self, channel, track):
+        if channel not in self.channel_ngrams:
+            self.channel_ngrams[channel] = SingleChannelNGram(self.size)
+        self.channel_ngrams[channel].build_from_track(track)
+
+    def get_channels(self):
+        return self.channel_ngrams.keys()
+
+    def get_ngram(self, channel):
+        return self.channel_ngrams[channel]
 
 
 class OrderedFrames(object):

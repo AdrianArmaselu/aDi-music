@@ -105,24 +105,21 @@ class OrganizedNotesTable(NotesTable):
         return string
 
 
-class MusicalTranscript(object):
+class MusicTranscript(object):
     """
-    Used for simplifying the structure that stores the notes from the OrganizedTableNotes object
-    Stores SoundEvent objects into lists called tracks
+    Simple data structure for storing sound events on multiple tracks
     """
 
-    def __init__(self, notes_table):
-        self.notes_table = notes_table
+    def __init__(self):
         self.tracks = {}
-        self.__build__()
 
-    def __build__(self):
+    def add_tracks(self, notes_table):
         """
         Loops through each tick and channel and creates SoundEvent objects from the notes.
         The objects are then added to tracks, where each track corresponds to a channel
         """
-        table = self.notes_table.table
-        for channel in self.notes_table.channels:
+        table = notes_table.table
+        for channel in notes_table.channels:
             self.tracks[channel] = []
         for tick in table:
             for channel in table[tick]:
@@ -133,8 +130,14 @@ class MusicalTranscript(object):
                 # TODO: IF THE NOTE IF A DIFFERENT CHANNEL BUT IT IS PART OF A SOUND EVENT WITH MULTIPLE NOTES, THEN IT IS NOT PART OF THAT CHORD
                 self.tracks[channel].append(sound_event)
 
+    def add_track(self, channel, track):
+        self.tracks[channel] = track
+
     def get_sound_events(self, channel):
         return self.tracks[channel]
+
+    def get_channels(self):
+        return self.tracks.keys()
 
     def __str__(self):
         string = "MusicalTranscript:\n"
@@ -143,6 +146,12 @@ class MusicalTranscript(object):
             for sound_event in self.tracks[channel]:
                 string += str(sound_event) + "\n"
         return string
+
+    def get_track(self, channel):
+        return self.tracks[channel]
+
+    def get_tracks(self):
+        return self.tracks.values()
 
 
 class Frame(object):
@@ -319,7 +328,7 @@ class MetaContext:
         if global_context.key_signature_event:
             self.key_signature_event = global_context.key_signature_event
         if global_context.tempo_event:
-            self.key_signature_event = global_context.tempo_event
+            self.tempo_event = global_context.tempo_event
 
     def __str__(self):
         string = str(self.time_signature_event) + ", " + str(self.tempo_event) + ", "

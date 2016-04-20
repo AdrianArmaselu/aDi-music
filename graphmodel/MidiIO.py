@@ -1,7 +1,6 @@
 from collections import OrderedDict
 import sys
 
-from midi.events import EndOfTrackEvent
 import midi
 
 from Model import Note, OrganizedNotesTable, NotesTable, MetaContext
@@ -10,6 +9,7 @@ from graphmodel import MidiUtils
 __author__ = 'Adisor'
 
 
+# TODO: JUST GET TRANSCRIPT INSTEAD OF TABLE, MUCH SIMPLER
 class MidiIO:
     """
     Used to read the notes from the midi file
@@ -43,6 +43,7 @@ class MidiIO:
             timeline_tick += event.tick
             if MidiUtils.is_global_meta_event(event):
                 helper_table.add_global_meta_event(timeline_tick, event)
+        helper_table.sort_global_context()
 
     def extract_track_data(self, track, helper_table):
         timeline_tick = 0
@@ -55,7 +56,7 @@ class MidiIO:
             helper_table.update_current_context(timeline_tick)
             if MidiUtils.is_new_note(event):
                 note = Note(timeline_tick, 0, event.channel, event.pitch, event.velocity,
-                            helper_table.get_current_context())
+                            helper_table.get_current_context().copy())
                 helper_table.add(note)
             if MidiUtils.has_note_ended(event):
                 note = helper_table.get_note(event.channel, event.pitch)
@@ -125,8 +126,12 @@ class RunningNotesTable(NotesTable):
 
     def add_global_meta_event(self, timeline, global_meta_event):
         self.current_context.update(global_meta_event)
+
         if timeline not in self.global_context_map:
             self.global_context_map[timeline] = self.current_context.copy()
+
+    def sort_global_context(self):
+        self.global_context_map = OrderedDict(sorted(self.global_context_map.items()))
 
     def add_track_meta_event(self, timeline, meta_event):
         self.update_current_context(timeline)
@@ -140,10 +145,9 @@ class RunningNotesTable(NotesTable):
         while global_timeline <= timeline and self.global_index < len(self.global_context_map.keys()) - 1:
             self.global_index += 1
             global_timeline = self.get_global_timeline()
-            self.current_context.update(self.global_context_map[global_timeline])
+            self.current_context.update_global_context(self.global_context_map[global_timeline])
 
     def get_global_timeline(self):
-        # print str(len(self.context_map.keys())), str(self.current_context_index)
         return self.global_context_map.keys()[self.global_index]
 
     def get_current_context(self):
@@ -151,76 +155,3 @@ class RunningNotesTable(NotesTable):
 
     def get_note(self, channel, pitch):
         return self.table[pitch][channel]
-
-
-def to_midi_pattern(sequence):
-    scheduler = Scheduler(sequence)
-    scheduler.schedule()
-    converter = MidiConverter(scheduler.scheduled_sequence)
-    converter.convert()
-    return converter.pattern
-
-
-# TODO: HANDLE MULTIPLE CHANNELS INTO MULTIPLE TRACKS
-class Scheduler:
-    """
-    Uses a sequence of SoundEvent objects to schedule them in a timeline of ticks
-
-    The algorithm works as follows:
-    1. Initialize the "start" variable to 0. It will be used to keep track when the next SoundEvent object starts
-    2. Loop through each SoundEvent object s of sequence seq
-    3. Loop through each note n of s
-    4. Schedule when n starts playing based on the start variable.
-    5. Schedule when n stops playing based on the start variable + duration_ticks of the note
-    6. End loop of s
-    7. Update the start variable by the duration of the shortest note of s
-    """
-
-    def __init__(self, sequence):
-        self.sequence = sequence
-        self.scheduled_sequence = {}
-
-    def schedule(self):
-        start = 0
-        for sound_event in self.sequence:
-            for note in sound_event.notes:
-                self.schedule_note(note, start)
-            start += sound_event.shortest_note().next_delta_ticks
-        self.scheduled_sequence = OrderedDict(sorted(self.scheduled_sequence.items(), key=lambda key: key[0]))
-
-    def schedule_note(self, note, start):
-        if start not in self.scheduled_sequence:
-            self.scheduled_sequence[start] = []
-        if start + note.duration_ticks not in self.scheduled_sequence:
-            self.scheduled_sequence[start + note.duration_ticks] = []
-        self.scheduled_sequence[start].append(MidiUtils.note_on_event(note))
-        self.scheduled_sequence[start + note.duration_ticks].append(MidiUtils.note_off_event(note))
-
-
-# TODO: HANDLE MULTIPLE CHANNELS INTO MULTIPLE TRACKS
-class MidiConverter:
-    """
-    Converts a scheduled sequence of notes into a midi pattern object
-    """
-
-    def __init__(self, scheduled_sequence):
-        self.scheduled_sequence = scheduled_sequence
-        self.pattern = midi.Pattern()
-        self.convert()
-
-    def convert(self):
-        """
-        Loops through each event and updates its tick based on delta ticks.
-        Delta ticks are also called times between events (start of an event or its end)
-
-        After updating the event, it adds it to a track, then the track is added to the midi pattern
-        """
-        track = midi.Track()
-        last_tick = 0
-        for tick in self.scheduled_sequence:
-            for note_on_event in self.scheduled_sequence[tick]:
-                note_on_event.tick = tick - last_tick
-                last_tick = tick
-                track.append(note_on_event)
-        track.append(EndOfTrackEvent(tick=1))
-        self.pattern = midi.Pattern([track])
