@@ -1,12 +1,12 @@
 import logging
 from random import randint
 import midi
-# import pygame
-from MidiIO import MidiIO, to_midi_pattern
-from Model import MusicalTranscript, Frame
-from NGram import NGram
+from MidiIO import MidiIO
+from Model import MusicTranscript, Frame
+from NGram import SingleChannelNGram
 from Policies import FrameSelectionPolicy, PolicyConfiguration, ChannelMixingPolicy, \
     MetadataResolutionPolicy
+from graphmodel.MidiConverter import to_midi_pattern
 
 __author__ = 'Adisor'
 
@@ -16,28 +16,37 @@ __author__ = 'Adisor'
 # TODO: Add metadata resolution
 # TODO: test for trigrams, quadgrams, pentagrams, etc
 # TODO: OPTIMIZE NGRAM, CONVERTER (TAKES A LONG TIME FOR LARGE N FOR NGRAMS)
-class MusicGenerator(object):
+# TODO: INSTEAD OF GENERATED_TRACK, HAVE MUSICAL TRANSCRIPT
+class SingleChannelGenerator(object):
     """
     This class generates music. Currently, it takes the sound event data from an ngram, but that can change
+
+    IMPORTANT: REFRAIN FROM ACCESSING INTERNAL ATTRIBUTES OF NGRAM CLASS TO REDUCE COUPLING
+
     """
 
-    def __init__(self, ngram, song_duration, policy_configuration):
-        self.ngram = ngram
+    def __init__(self, singlechannel_ngram, song_duration, policy_configuration):
+        self.ngram = singlechannel_ngram
         # measured in number of notes
-        self.frame_distribution = ngram.frame_distribution
         self.song_duration = song_duration
         self.policies = policy_configuration
-        self.sequence = []
+        self.transcript = MusicTranscript()
 
-    def generate(self):
+    def generate(self, channel):
+        """
+        Generates a track and adds it to the transcript on the specific channel
+        :return:
+        """
+        generated_track = []
         # first frame
-        frame = self.frame_distribution.keys()[0]
-        for i in range(0, self.song_duration, 1):
+        frame = self.ngram.get_first_frame()
+        while len(generated_track) < self.song_duration:
             for sound_event in frame.sound_events:
-                self.sequence.append(sound_event)
+                generated_track.append(sound_event)
             frame = self.next_frame(frame.last_sound_event())
             # we are only concerned about elements after the first one
             frame = Frame(self.ngram.frame_size, frame.sound_events[1:])
+        self.transcript.add_track(channel, generated_track)
 
     # find the frame with the maximum count that starts with last_sound_event
     def next_frame(self, last_sound_event):
@@ -53,40 +62,45 @@ class MusicGenerator(object):
         max_count = 0
         indexes = self.ngram.get_sound_event_indexes(last_sound_event)
         for index in indexes:
-            frame = self.ngram.indexed_frames[index]
-            count = self.frame_distribution[frame]
+            frame = self.ngram.get_indexed_frame(index)
+            count = self.ngram.get_frame_count(frame)
             if frame.first() == last_sound_event and (count > max_count):
                 max_count = count
                 next_frame = frame
         # this means we reached the end of the samples, pick a random next frame
         if next_frame is None:
-            next_frame = self.get_random_frame()
+            next_frame = self.ngram.get_random_frame()
         return next_frame
 
     def get_random_next_frame(self, last_sound_event):
         # this may cause bugs because some sound events have no indexes
-        print "last", last_sound_event
         if self.ngram.has_index(last_sound_event):
             indexes = self.ngram.get_sound_event_indexes(last_sound_event)
             key = randint(0, len(indexes) - 1)
             index = indexes[key]
-            frame = self.ngram.indexed_frames[index]
+            frame = self.ngram.get_indexed_frame(index)
         else:
-            frame = self.get_random_frame()
+            frame = self.ngram.get_random_frame()
         return frame
 
-    def get_random_frame(self):
-        index = randint(0, len(self.frame_distribution) - 1)
-        return self.frame_distribution.keys()[index]
 
-    def print_sequence(self):
-        print "SEQUENCE:"
-        for item in self.sequence:
-            print item
+class MultiChannelGenerator:
+    def __init__(self, multichannel_ngram, song_duration, policy_configuration):
+        self.multichannel_ngram = multichannel_ngram
+        self.song_duration = song_duration
+        self.policies = policy_configuration
+        # Used for final output
+        self.transcript = MusicTranscript()
 
+    def generate(self):
+        channels = self.multichannel_ngram.get_channels()
+        for channel in channels:
+            # TODO: SONG DURATION DOES NOT HAVE TO BE self.song_duration FOR THIS GENERATOR
+            single_channel_generator = SingleChannelGenerator(self.multichannel_ngram.get_ngram(channel),
+                                                              self.song_duration, self.policies)
+            single_channel_generator.generate(channel)
+            self.transcript.add_track(channel, single_channel_generator.transcript.get_track(channel))
 
-def log(current, delta):
-    print "time: %d, %d" % (current, delta)
 
 FORMAT = '%(asctime)-12s %(message)s'
 logging.basicConfig(format=FORMAT)
@@ -94,66 +108,17 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-def generate(input_file, num_notes, folder='default'):
+def generate(input_file, num_sound_events, folder='default'):
     policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
                                                FrameSelectionPolicy.RANDOM,
                                                MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
     data = MidiIO("%s/%s" % (folder, input_file))
-    musical_transcript = MusicalTranscript(data.table)
-    ngram = NGram(musical_transcript, 2, policy_configuration)
-    generator = MusicGenerator(ngram, num_notes, policy_configuration)
-    generator.generate()
-    pattern = to_midi_pattern(generator.sequence)
+    musical_transcript = MusicTranscript()
+    musical_transcript.add_tracks(data.notes_table)
+    ngram = SingleChannelNGram(2)
+    ngram.build_from_transcript(musical_transcript)
+    generator = SingleChannelGenerator(ngram, num_sound_events, policy_configuration)
+    generator.generate(0)
+    pattern = to_midi_pattern(generator.transcript)
     name = input_file.split('.')[0]
     midi.write_midifile("%s/output-%s.mid" % (folder, name), pattern)
-
-if __name__ == '__main__':
-    # define properties
-    # midi_file = "music/Eminem/thewayiam.mid"
-    # midi_file = "music/mary.mid"
-    midi_file = "music/bach.mid"
-    number_of_notes = 20
-    policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
-                                               FrameSelectionPolicy.RANDOM,
-                                               MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
-
-    logger.info("Starting Application...")
-    # load file
-    data = MidiIO(midi_file)
-    logger.info(data)
-    logger.info("Loaded data from file")
-
-    # get the notes table
-    table = data.table
-    print data.table
-
-    # build the musical transcript
-    musical_transcript = MusicalTranscript(table)
-    # print musical_transcript
-    logger.info("Created MusicalTranscript")
-
-    # construct the ngram
-    ngram = NGram(musical_transcript, 2, policy_configuration)
-    # print ngram
-    logger.info("Created NGram")
-
-    # construct the generator and generate a sequence of sound events
-    generator = MusicGenerator(ngram, number_of_notes, policy_configuration)
-    generator.generate()
-    generator.print_sequence()
-    logger.info("Created Sequence")
-
-    pattern = to_midi_pattern(generator.sequence)
-    logger.info("Converted Sequence")
-
-    # save to file
-    midi.write_midifile("output.mid", pattern)
-    logger.info("Saved to File")
-
-    # play the music
-    # pygame.init()
-    # pygame.mixer.music.load("output.mid")
-    # pygame.mixer.music.play()
-
-    # while pygame.mixer.music.get_busy():
-    #     pygame.time.wait(1000)

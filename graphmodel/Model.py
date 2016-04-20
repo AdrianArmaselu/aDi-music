@@ -1,71 +1,13 @@
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 import sys
-import midi
-from midi.events import EndOfTrackEvent, TimeSignatureEvent, SetTempoEvent, KeySignatureEvent, ControlChangeEvent, \
-    PortEvent, ProgramChangeEvent, NoteOffEvent, NoteOnEvent
+
+from graphmodel import MidiUtils
 
 __author__ = 'Adisor'
 
-music_control_events = [TimeSignatureEvent, SetTempoEvent, KeySignatureEvent, ControlChangeEvent, PortEvent,
-                        ProgramChangeEvent]
-"""
-Consider: Polyphonic Aftertouch, Channel Aftertouch - how much a key is pressed more - for now we can ignore
-Port Events can be ignored
-Control Change and aftertouch - modulation and pitch bend
-check MIT music21
-"""
 
-
-def get_event_type(event):
-    return type(event)
-
-
-def is_meta_event(event):
-    event_type = get_event_type(event)
-    return event_type != NoteOnEvent and event_type != NoteOffEvent
-
-
-def is_music_control_event(event):
-    """
-    Checks to see if the event is an event that sets music control - meaning tempo, key signature etc.
-    Object event must be one of the following:  TimeSignatureEvent, SetTempoEvent, KeySignatureEvent,
-    ControlChangeEvent, PortEvent, ProgramChangeEvent
-    """
-    event_type = get_event_type(event)
-    boolean = False
-    for control_event in music_control_events:
-        boolean = boolean or event_type is control_event
-    return boolean
-
-
-def has_note_ended(event):
-    event_type = get_event_type(event)
-    return event_type == NoteOffEvent or (event_type == NoteOnEvent and event.velocity == 0)
-
-
-def is_new_note(event):
-    event_type = get_event_type(event)
-    return event_type == NoteOnEvent and event.velocity > 0
-
-
-def is_chord(sound_event):
-    return is_chord(sound_event.notes)
-
-
-def is_chord(notes):
-    return len(notes) > 0
-
-
-def note_on_event(note):
-    return midi.NoteOnEvent(channel=note.channel, tick=0, pitch=note.pitch,
-                            velocity=note.velocity)
-
-
-def note_off_event(note):
-    return midi.NoteOnEvent(channel=note.channel, tick=0, pitch=note.pitch,
-                            velocity=0)
-
-
+# TODO: CACHE HASH
+# TODO: DIVERSIFY CHORDS OVER CHANNELS SEE WHAT HAPPENS
 class NotesTable(object):
     """
     Base class used for storing Note objects in a table
@@ -165,24 +107,21 @@ class OrganizedNotesTable(NotesTable):
         return string
 
 
-class MusicalTranscript(object):
+class MusicTranscript(object):
     """
-    Used for simplifying the structure that stores the notes from the OrganizedTableNotes object
-    Stores SoundEvent objects into lists called tracks
+    Simple data structure for storing sound events on multiple tracks
     """
 
-    def __init__(self, notes_table):
-        self.notes_table = notes_table
+    def __init__(self, ):
         self.tracks = {}
-        self.__build__()
 
-    def __build__(self):
+    def add_tracks(self, notes_table):
         """
         Loops through each tick and channel and creates SoundEvent objects from the notes.
         The objects are then added to tracks, where each track corresponds to a channel
         """
-        table = self.notes_table.table
-        for channel in self.notes_table.channels:
+        table = notes_table.table
+        for channel in notes_table.channels:
             self.tracks[channel] = []
         for tick in table:
             for channel in table[tick]:
@@ -193,8 +132,14 @@ class MusicalTranscript(object):
                 # TODO: IF THE NOTE IF A DIFFERENT CHANNEL BUT IT IS PART OF A SOUND EVENT WITH MULTIPLE NOTES, THEN IT IS NOT PART OF THAT CHORD
                 self.tracks[channel].append(sound_event)
 
+    def add_track(self, channel, track):
+        self.tracks[channel] = track
+
     def get_sound_events(self, channel):
         return self.tracks[channel]
+
+    def get_channels(self):
+        return self.tracks.keys()
 
     def __str__(self):
         string = "MusicalTranscript:\n"
@@ -203,6 +148,18 @@ class MusicalTranscript(object):
             for sound_event in self.tracks[channel]:
                 string += str(sound_event) + "\n"
         return string
+
+    def get_track(self, channel):
+        return self.tracks[channel]
+
+    def get_tracks(self):
+        return self.tracks.values()
+
+    def add_sound_event(self, sound_event):
+        channel = sound_event.get_channel()
+        if channel not in self.tracks:
+            self.tracks[channel] = []
+        self.tracks[channel].append(sound_event)
 
 
 class Frame(object):
@@ -254,9 +211,13 @@ class SoundEvent(object):
 
     def __init__(self, notes):
         # sorted by duration
-        self.notes = ()
-        for note in sorted(notes, key=lambda note: note.next_delta_ticks):
-            self.notes += (note,)
+        # self.notes = ()
+        # for note in sorted(notes, key=lambda note: note.next_delta_ticks):
+        #     self.notes += (note,)
+        self.notes = notes
+
+    def get_channel(self):
+        return self.notes[0].channel
 
     def first(self):
         return self.notes[0]
@@ -288,13 +249,11 @@ class Note(object):
     """
     The class that represents a musical note. Contains all the necessary data.
     """
+    SHOW_CONTEXT_INFO = False
 
-    def __init__(self, timeline_tick, wait_ticks, duration_ticks, channel, pitch, velocity, meta_context):
+    def __init__(self, timeline_tick, duration_ticks, event, meta_context=None):
         # timestamp from original song
         self.timeline_tick = timeline_tick
-
-        # ticks before playing this note
-        self.wait_ticks = wait_ticks
 
         # how long to play this note (not how many ticks until next note)
         self.duration_ticks = duration_ticks
@@ -304,9 +263,9 @@ class Note(object):
 
         # ticks to next sound event
         self.next_delta_ticks = 0
-        self.channel = channel
-        self.pitch = pitch
-        self.velocity = velocity
+        self.channel = event.channel
+        self.pitch = event.pitch
+        self.velocity = event.velocity
 
         self.meta_context = meta_context
         # TODO: USE THIS WHEN DOING COMPLEX METADATA RESOLUTION
@@ -327,37 +286,25 @@ class Note(object):
         return self.encode() == other.encode()
 
     def __str__(self):
-        return (
-            "Note(start_tick:%d, wait_ticks:%d, ticks:%d, "
-            "previous_delta_ticks:%d, next_delta_ticks:%d, "
-            "channel:%d, pitch:%d, velocity:%d)" %
-            (self.timeline_tick, self.wait_ticks, self.duration_ticks,
+        string = (
+            "Note(timeline:%d, t:%d, "
+            "dt-:%d, dt+:%d, "
+            "ch:%d, pitch:%d, vol:%d" %
+            (self.timeline_tick, self.duration_ticks,
              self.previous_delta_ticks, self.next_delta_ticks,
              self.channel, self.pitch, self.velocity))
+        if self.SHOW_CONTEXT_INFO:
+            string += (" meta_context: %s" % self.meta_context)
+        string += ")"
+        return string
 
 
-def is_time_signature_event(event):
-    return get_event_type(event) == TimeSignatureEvent
+def is_chord(sound_event):
+    return is_chord(sound_event.notes)
 
 
-def is_set_tempo_event(event):
-    return get_event_type(event) == SetTempoEvent
-
-
-def is_key_signature_event(event):
-    return get_event_type(event) == KeySignatureEvent
-
-
-def is_control_change_event(event):
-    return get_event_type(event) == ControlChangeEvent
-
-
-def is_port_event(event):
-    return get_event_type(event) == PortEvent
-
-
-def is_program_change_event(event):
-    return get_event_type(event) == ProgramChangeEvent
+def is_chord(notes):
+    return len(notes) > 0
 
 
 class MetaContext:
@@ -373,16 +320,42 @@ class MetaContext:
         return MetaContext(self.time_signature_event, self.tempo_event, self.key_signature_event, self.control_event,
                            self.port_event, self.program_event)
 
-    def update(self, event):
-        if is_time_signature_event(event):
+    def update_from_event(self, event):
+        if not MidiUtils.is_music_control_event(event):
+            return
+        if MidiUtils.is_time_signature_event(event):
             self.time_signature_event = event
-        if is_set_tempo_event(event):
+        if MidiUtils.is_set_tempo_event(event):
             self.tempo_event = event
-        if is_key_signature_event(event):
+        if MidiUtils.is_key_signature_event(event):
             self.key_signature_event = event
-        if is_control_change_event(event):
+        if MidiUtils.is_control_change_event(event):
             self.control_event = event
-        if is_port_event(event):
+        if MidiUtils.is_port_event(event):
             self.port_event = event
-        if is_program_change_event(event):
+        if MidiUtils.is_program_change_event(event):
             self.program_event = event
+
+    def update_from_context(self, context):
+
+        # global parameters
+        if context.time_signature_event:
+            self.time_signature_event = context.time_signature_event
+        if context.key_signature_event:
+            self.key_signature_event = context.key_signature_event
+        if context.tempo_event:
+            self.tempo_event = context.tempo_event
+
+        # track parameters
+        if context.control_event:
+            self.control_event = context.control_event
+        if context.port_event:
+            self.port_event = context.port_event
+        if context.program_event:
+            self.program_event = context.program_event
+
+    def __str__(self):
+        string = str(self.time_signature_event) + ", " + str(self.tempo_event) + ", "
+        string += str(self.key_signature_event) + ", " + str(self.control_event) + ", " + str(self.port_event) + ", "
+        string += str(self.program_event)
+        return string
