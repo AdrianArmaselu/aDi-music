@@ -47,7 +47,7 @@ class TrackSchedule:
         for sound_event in track:
             for note in sound_event.notes:
                 self.schedule_note(note, start)
-            start += sound_event.shortest_note().next_delta_ticks
+            start += sound_event.shortest_note().pause_to_next_note
         self.scheduled_events = OrderedDict(sorted(self.scheduled_events.items(), key=lambda key: key[0]))
 
     def schedule_note(self, note, start):

@@ -161,8 +161,15 @@ class RunningNotesTable(NotesTable):
         return self.table[pitch][channel]
 
 
+class PreProcessor:
+    def __init__(self, pattern):
+        self.pattern = pattern
+
+
 class ExperimentalReader:
     def __init__(self, midi_file):
+        analyzer = Analyzer(midi_file)
+        analyzer.perform_analysis()
         self.pattern = midi.read_midifile(midi_file)
         self.meta_context = TrackMetaContext(self.pattern)
         self.transcript = MusicTranscript()
@@ -339,14 +346,14 @@ class TrackMetaContext:
     def update_global_context_index(self, track_time, track_index):
         index = self.global_context_index[track_index]
         global_time = self.global_context_table.get_time(index)
-        while global_time < track_time and index < len(self.global_context_table):
+        while global_time < track_time and index < len(self.global_context_table) - 1:
             index += 1
             global_time = self.global_context_table.get_time(index)
         self.global_context_index[track_index] = index
         return index
 
-
 # midi_file = "music/cosifn2t.mid"
+# midi_file = "music/bach.mid"
 # experimentalReader = ExperimentalReader(midi_file)
 # print experimentalReader.pattern
 # experimentalReader.load()

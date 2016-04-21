@@ -19,7 +19,8 @@ __author__ = 'Adisor'
 pattern = midi.read_midifile("../music/bach.mid")
 # pattern = midi.read_midifile("../music/Eminem/thewayiam.mid")
 print pattern
-MidiUtils.delete_tracks(pattern, 2, 3)
+MidiUtils.delete_tracks(pattern, 1, 2)
+MidiUtils.delete_tracks(pattern, 2, len(pattern))
 # Utils.delete_tracks(pattern, 1, 3)
 # Utils.change_program(pattern[1], [26])
 # Utils.convert_channel(pattern[1], 0)
