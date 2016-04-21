@@ -17,6 +17,7 @@ __author__ = 'Adisor'
 # TODO: test for trigrams, quadgrams, pentagrams, etc
 # TODO: OPTIMIZE NGRAM, CONVERTER (TAKES A LONG TIME FOR LARGE N FOR NGRAMS)
 # TODO: INSTEAD OF GENERATED_TRACK, HAVE MUSICAL TRANSCRIPT
+# TODO: USE SEED FOR RANDOM GENERATOR TO REPRODUCE
 class SingleChannelGenerator(object):
     """
     This class generates music. Currently, it takes the sound event data from an ngram, but that can change

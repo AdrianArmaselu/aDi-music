@@ -1,6 +1,6 @@
 from collections import OrderedDict
 import sys
-
+from collections import defaultdict
 import midi
 
 from Model import Note, OrganizedNotesTable, NotesTable, MetaContext, MusicTranscript, SoundEvent
@@ -60,8 +60,7 @@ class MidiIO:
                 continue
             helper_table.update_current_context(timeline_tick)
             if MidiUtils.is_new_note(event):
-                note = Note(timeline_tick, 0, event.channel, event.pitch, event.velocity,
-                            helper_table.get_current_context().copy())
+                note = Note(timeline_tick, 0, helper_table.get_current_context().copy())
                 helper_table.add(note)
             if MidiUtils.has_note_ended(event):
                 note = helper_table.get_note(event.channel, event.pitch)
@@ -165,13 +164,9 @@ class RunningNotesTable(NotesTable):
 class ExperimentalReader:
     def __init__(self, midi_file):
         self.pattern = midi.read_midifile(midi_file)
-        # track meta event context
-        self.track_context_list = TrackMetaContextList(self.pattern)
-        # final output
+        self.meta_context = TrackMetaContext(self.pattern)
         self.transcript = MusicTranscript()
-        # track on notes
-        self.on_notes = {}
-        self.note_start_times = {}
+        self.tracker = NotesTracker()
 
     def load(self):
         """
@@ -179,113 +174,181 @@ class ExperimentalReader:
         :return:
         """
         is_finished = False
-        # track indexes
-        event_indexes = []
         # track timelines
-        track_timeline = []
-
-        # initialization
-        for track_index in self.pattern:
-            track_timeline[track_index] = 0
-            event_indexes[track_index] = 0
+        track_timeline = defaultdict(int)
+        # track indexes
+        event_indexes = defaultdict(int)
 
         while not is_finished:
-            for track_index in range(1, len(self.pattern), 1):
+            end_of_any_track = True
+            for track_index in range(0, len(self.pattern), 1):
 
                 event_index = event_indexes[track_index]
                 current_track = self.pattern[track_index]
-
                 # did we reach the end of all tracks?
-                is_finished = False
-                if event_index > len(current_track):
-                    is_finished = True
+                if event_index > len(current_track) - 1:
                     continue
 
                 event = current_track[event_index]
-                track_tick = track_timeline[track_index] + event.tick
-                context = self.track_context_list.get_current_context(track_tick, track_index, event)
-
-                # create new notes
+                current_time = track_timeline[track_index] + event.tick
+                track_timeline[track_index] = current_time
+                context = self.meta_context.get_current_context(current_time, track_index, event)
                 if MidiUtils.is_new_note(event):
-                    # Todo: update indexes and compute times to next event and previous event
-                    event_indexes[track_index] = self.extract_notes(current_track, event_index, track_tick, context)
-                # update end time
-                if MidiUtils.has_note_ended(event):
-                    # TODO: use start time table
-                    # self.on_notes[event.channel][event.pitch].duration_ticks =
-                    self.transcript.update_note_time(self.on_notes[event.channel][event.pitch])
-                track_timeline[track_index] = track_tick
+                    event_indexes[track_index] = self.extract_notes_and_get_index(track_index, event_index,
+                                                                                  current_time, context)
+                    self.update_most_recent_notes(track_index, current_time)
+                    continue
 
-    def extract_notes(self, track, index, tick, context):
-        notes = (self.create_and_track_on_note(tick, track[index], context))
-        next_event_index = index + 1
+                if MidiUtils.has_note_ended(event):
+                    note = self.tracker.get_on_note(event.channel, event.pitch)
+                    self.update_and_track_off_note(note, current_time, track_index)
+                event_indexes[track_index] += 1
+                end_of_any_track = end_of_any_track and False
+            is_finished = end_of_any_track
+
+    def extract_notes_and_get_index(self, track_index, event_index, tick, context):
+        track = self.pattern[track_index]
+
+        # create node and track it
+        note = Note(tick, 0, track[event_index], context.copy())
+        self.update_and_track_on_note(note, track_index, tick)
+
+        # create a tuple of notes
+        notes = (note,)
+        next_event_index = event_index + 1
+
+        # loops through all notes that are part of the chord and adds them to a tuple
         while has_chord_notes(track, next_event_index):
             next_event = track[next_event_index]
-            next_note = self.create_and_track_on_note(tick, next_event, context)
-            notes += (next_note,)
+            note = Note(tick, 0, next_event, context.copy())
+            self.update_and_track_on_note(note, track_index, tick)
+            notes += (note,)
             next_event_index += 1
+
+        # create a sound event from the extracted notes
         sound_event = SoundEvent(notes)
         self.transcript.add_sound_event(sound_event)
-        return next_event_index - 1
 
-    def create_and_track_on_note(self, tick, event, context):
-        note = Note(tick, 0, event, context.copy())
-        if event.channel not in self.on_notes:
-            self.on_notes[event.channel] = {}
-        self.on_notes[event.channel][event.pitch] = note
+        # return the index of the next unprocessed event
+        return next_event_index
+
+    def update_and_track_on_note(self, note, track_index, tick):
+        # if this is the first note, the pause from last note is 0
+        if self.tracker.get_last_note_end_time(track_index) != 0:
+            note.pause_to_previous_note = tick - self.tracker.get_last_note_end_time(track_index)
+        self.tracker.add_to_on_notes(note)
+        self.tracker.set_note_start_time(note, tick)
         return note
+
+    def update_most_recent_notes(self, track_index, current_time):
+        for past_note in self.tracker.get_off_notes(track_index):
+            past_note.pause_to_next_note = current_time - self.tracker.get_note_end_time(past_note)
+            self.tracker.remove_from_off_notes(track_index, past_note)
+
+    def update_and_track_off_note(self, note, current_time, track_index):
+        note.duration_ticks = current_time - self.tracker.get_note_start_time(note)
+        self.tracker.set_note_end_time(note, current_time)
+        self.tracker.set_last_note_end_time(track_index, current_time)
+        self.tracker.add_to_off_notes(track_index, note)
 
 
 def has_chord_notes(track, index):
-    return index < len(track[index]) - 1 and MidiUtils.is_new_note(track[index]) and track[index].tick == 0
+    return index < len(track) - 1 and MidiUtils.is_new_note(track[index]) and track[index].tick == 0
+
+
+class NotesTracker:
+    def __init__(self):
+        self.on_notes = defaultdict(lambda: {})
+        self.note_start_time = defaultdict(int)
+        self.note_end_time = defaultdict(int)
+        self.last_note_end_time = defaultdict(int)
+        self.off_notes = defaultdict(lambda: [])
+
+    def set_note_start_time(self, note, time):
+        self.note_start_time[note] = time
+
+    def set_note_end_time(self, note, time):
+        self.note_end_time[note] = time
+
+    def set_last_note_end_time(self, track_index, time):
+        self.last_note_end_time[track_index] = time
+
+    def get_last_note_end_time(self, track_index):
+        return self.last_note_end_time[track_index]
+
+    def get_on_note(self, channel, pitch):
+        return self.on_notes[channel][pitch]
+
+    def get_off_notes(self, track_index):
+        return self.off_notes[track_index]
+
+    def get_note_start_time(self, note):
+        return self.note_start_time[note]
+
+    def get_note_end_time(self, note):
+        return self.note_end_time[note]
+
+    def add_to_off_notes(self, track_index, note):
+        self.off_notes[track_index].append(note)
+
+    def remove_from_off_notes(self, track_index, note):
+        self.off_notes[track_index].remove(note)
+
+    def add_to_on_notes(self, note):
+        self.on_notes[note.channel][note.pitch] = note
 
 
 class GlobalMetaContextTable:
     def __init__(self, global_track):
         self.context = {}
-        tick = 0
+        time = 0
         for event in global_track:
-            tick += event.tick
+            time += event.tick
             context = MetaContext()
             context.update_from_event(event)
-            self.context[tick] = context
+            self.context[time] = context
 
-    def get_tick(self, index):
+    def get_time(self, index):
         return self.context.keys()[index]
 
     def get_context_from_index(self, index):
-        return self.context[self.get_tick(index)]
+        return self.context[self.get_time(index)]
 
     def __len__(self):
         return len(self.context)
 
 
-class TrackMetaContextList:
+class TrackMetaContext:
     def __init__(self, tracks):
-        self.context = []
+        self.context = {}
         self.global_context_table = GlobalMetaContextTable(tracks[0])
         # used for updating track context from global context
-        self.global_context_index = []
+        self.global_context_index = {}
         for track_index in range(0, len(tracks), 1):
             self.context[track_index] = MetaContext()
             self.global_context_index[track_index] = 0
 
-    def get_context(self, track_index):
-        return self.context[track_index]
-
     def get_current_context(self, track_tick, track_index, event):
         index = self.update_global_context_index(track_tick, track_index)
         global_context = self.global_context_table.get_context_from_index(index)
-        track_context = self.get_context(track_index)
+        track_context = self.context[track_index]
         track_context.update_from_context(global_context)
         track_context.update_from_event(event)
         return track_context
 
-    def update_global_context_index(self, track_tick, track_index):
+    def update_global_context_index(self, track_time, track_index):
         index = self.global_context_index[track_index]
-        global_tick = self.global_context_table.get_tick(index)
-        while global_tick < track_tick and index < len(self.global_context_table):
+        global_time = self.global_context_table.get_time(index)
+        while global_time < track_time and index < len(self.global_context_table):
             index += 1
-            global_tick = self.global_context_table.get_tick(index)
+            global_time = self.global_context_table.get_time(index)
         self.global_context_index[track_index] = index
         return index
+
+
+# midi_file = "music/bach.mid"
+# experimentalReader = ExperimentalReader(midi_file)
+# print experimentalReader.pattern
+# experimentalReader.load()
+# transcript = experimentalReader.transcript
+# print transcript

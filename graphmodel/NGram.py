@@ -13,6 +13,8 @@ TODO: Methods for increasing distribution counts:
 """
 
 
+# TODO: BUILD NGRAMS WITH PAUSES INCLUDED IN FRAMES, SEE WHAT HAPPENS
+
 class SingleChannelNGram(object):
     """
     Builds a distribution map that counts the number of unique frames in the song. Key is frame, value is count

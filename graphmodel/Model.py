@@ -173,6 +173,7 @@ class Frame(object):
             self.sound_events = ()
         else:
             self.sound_events = sound_events
+        self.hash = None
 
     def add(self, sound_event):
         self.sound_events += (sound_event,)
@@ -190,7 +191,9 @@ class Frame(object):
         return len(self.sound_events)
 
     def __hash__(self):
-        return hash(self.sound_events)
+        if not self.hash:
+            self.hash = hash(self.sound_events)
+        return self.hash
 
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()
@@ -211,10 +214,11 @@ class SoundEvent(object):
 
     def __init__(self, notes):
         # sorted by duration
-        # self.notes = ()
-        # for note in sorted(notes, key=lambda note: note.next_delta_ticks):
-        #     self.notes += (note,)
-        self.notes = notes
+        self.notes = ()
+        for note in sorted(notes, key=lambda note: note.next_delta_ticks):
+            self.notes += (note,)
+        # self.notes = notes
+        self.hash = None
 
     def get_channel(self):
         return self.notes[0].channel
@@ -233,7 +237,9 @@ class SoundEvent(object):
         return min_ticks
 
     def __hash__(self):
-        return (hash(self.notes) << 4) | len(self.notes)
+        if not self.hash:
+            self.hash = (hash(self.notes) << 4) | len(self.notes)
+        return self.hash
 
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()
@@ -252,17 +258,17 @@ class Note(object):
     SHOW_CONTEXT_INFO = False
 
     def __init__(self, timeline_tick, duration_ticks, event, meta_context=None):
-        # timestamp from original song
+        # timestamp from original song - used purely for debugging purposes
         self.timeline_tick = timeline_tick
 
         # how long to play this note (not how many ticks until next note)
         self.duration_ticks = duration_ticks
 
         # ticks from last sound event
-        self.previous_delta_ticks = 0
+        self.pause_to_previous_note = 0
 
         # ticks to next sound event
-        self.next_delta_ticks = 0
+        self.pause_to_next_note = 0
         self.channel = event.channel
         self.pitch = event.pitch
         self.velocity = event.velocity
@@ -270,6 +276,7 @@ class Note(object):
         self.meta_context = meta_context
         # TODO: USE THIS WHEN DOING COMPLEX METADATA RESOLUTION
         self.context = []
+        self.hash = None
 
     # ticks | channel | pitch | velocity
     # bytes: 12 | 5 | 7 | 8
@@ -279,7 +286,9 @@ class Note(object):
         # return (self.ticks << 20) | (self.channel << 15)
 
     def __hash__(self):
-        return self.encode()
+        if not self.hash:
+            self.hash = self.encode()
+        return self.hash
 
     def __eq__(self, other):
         # return self.__hash__() == other.__hash__ and abs(self.pitch - other.pitch) < 10
@@ -291,7 +300,7 @@ class Note(object):
             "dt-:%d, dt+:%d, "
             "ch:%d, pitch:%d, vol:%d" %
             (self.timeline_tick, self.duration_ticks,
-             self.previous_delta_ticks, self.next_delta_ticks,
+             self.pause_to_previous_note, self.pause_to_next_note,
              self.channel, self.pitch, self.velocity))
         if self.SHOW_CONTEXT_INFO:
             string += (" meta_context: %s" % self.meta_context)
