@@ -215,7 +215,7 @@ class SoundEvent(object):
     def __init__(self, notes):
         # sorted by duration
         self.notes = ()
-        for note in sorted(notes, key=lambda note: note.next_delta_ticks):
+        for note in sorted(notes, key=lambda note: note.pause_to_next_note):
             self.notes += (note,)
         # self.notes = notes
         self.hash = None

@@ -60,7 +60,7 @@ class MidiIO:
                 continue
             helper_table.update_current_context(timeline_tick)
             if MidiUtils.is_new_note(event):
-                note = Note(timeline_tick, 0, helper_table.get_current_context().copy())
+                note = Note(timeline_tick, 0, event, helper_table.get_current_context().copy())
                 helper_table.add(note)
             if MidiUtils.has_note_ended(event):
                 note = helper_table.get_note(event.channel, event.pitch)
@@ -346,7 +346,7 @@ class TrackMetaContext:
         return index
 
 
-# midi_file = "music/bach.mid"
+# midi_file = "music/cosifn2t.mid"
 # experimentalReader = ExperimentalReader(midi_file)
 # print experimentalReader.pattern
 # experimentalReader.load()
