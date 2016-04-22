@@ -20,7 +20,6 @@ class PatternSchedule:
 
     def schedule_tracks(self, transcript):
         for track in transcript.get_tracks():
-            print transcript.get_tracks()
             scheduled_track = TrackSchedule(track)
             self.scheduled_tracks.append(scheduled_track)
 

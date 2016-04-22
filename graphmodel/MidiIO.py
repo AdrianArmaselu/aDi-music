@@ -14,7 +14,7 @@ __author__ = 'Adisor'
 #     transcript = MusicTranscript()
 # transcript.add_tracks()
 
-
+# TODO: CAPTURE SOUND EVENTS THAT ARE PARALLEL OVER MULTIPLE CHANNELS/TRACKS FOR BETTER REPRODUCTION
 class MidiIO:
     """
     Used to read the notes from the midi file
@@ -60,7 +60,7 @@ class MidiIO:
                 continue
             helper_table.update_current_context(timeline_tick)
             if MidiUtils.is_new_note(event):
-                note = Note(timeline_tick, 0, event, helper_table.get_current_context().copy())
+                note = Note(timeline_tick, 0, event, helper_table.get_context_at_time().copy())
                 helper_table.add(note)
             if MidiUtils.has_note_ended(event):
                 note = helper_table.get_note(event.channel, event.pitch)
@@ -89,7 +89,7 @@ class Analyzer:
         for track in self.pattern:
             channel = -1
             for event in track:
-                if MidiUtils.is_event(event):
+                if MidiUtils.is_channel_event(event):
                     if channel == -1:
                         channel = event.channel
                     if channel != event.channel:
@@ -162,8 +162,96 @@ class RunningNotesTable(NotesTable):
 
 
 class PreProcessor:
-    def __init__(self, pattern):
-        self.pattern = pattern
+    def __init__(self):
+        self.timelines = PatternTimelines()
+        self.primary_channel = defaultdict(lambda: None)
+        self.primary_track_index = defaultdict(lambda: None)
+        self.flagged_track_indexes = []
+
+    def schedule_tracks(self, pattern):
+        for track_index in range(0, len(pattern), 1):
+            time = 0
+            for event_index in pattern[track_index]:
+                current_event = pattern[track_index][event_index]
+                time += current_event.tick
+
+                if MidiUtils.is_channel_event(current_event):
+                    channel = current_event.channel
+                    # set primary channel of this track
+                    if self.primary_channel[track_index] is None:
+                        self.primary_channel[track_index] = channel
+                        self.primary_track_index[channel] = track_index
+                    # flag track if different than the primary track of this channel
+                    if self.primary_track_index[channel] != track_index:
+                        self.flagged_track_indexes.append(pattern)
+
+                # time table
+                self.timelines.set_event_index(track_index, time, event_index)
+
+        # reschedule events in target tracks
+        for flagged_track_index in self.flagged_track_indexes:
+            target_channel = self.primary_channel[flagged_track_index]
+            target_track_index = self.primary_track_index[target_channel]
+            target_track = pattern[target_track_index]
+            current_track_time = 0
+            target_time_index = 0
+            target_track_time = self.timelines.get_track_time(target_track_index, target_time_index)
+
+            # reschedule event in the target track
+            for current_event in pattern[flagged_track_index]:
+                """
+                update current track time
+                update track time of target track
+                place event from current track into target track
+                update adjacent ticks
+                update indexes
+                """
+                current_track_time += current_event.tick
+
+                # update the time so we can place events in this track into the target track
+                if target_track_time < current_track_time:
+                    target_track_time = self.timelines.get_track_time(target_track_index, target_time_index)
+                    target_time_index += 1
+
+                target_event_index = self.timelines.get_event_index(target_track_index, target_time_index)
+                target_event = pattern[target_track_index][target_event_index]
+                # place event in target track
+                pattern[target_track_index].insert(target_event_index - 1, current_event)
+                # update event ticks
+                target_previous_track_time = self.timelines.get_track_time(target_track_index, target_time_index - 1)
+                current_event.tick = current_track_time - target_previous_track_time
+                target_event.tick = target_track_time - current_track_time
+
+                # update timings and indexes
+                self.timelines.set_event_index(target_track_index, current_track_time, target_event_index - 1)
+
+
+class PatternTimelines:
+    def __init__(self):
+        self.timeline = defaultdict(Timeline)
+
+    def set_event_index(self, track_index, time, event_index):
+        self.timeline[track_index].set_value(time, event_index)
+
+    def get_track_time(self, track_index, time_index):
+        return self.timeline[track_index].get_time(time_index)
+
+    def get_event_index(self, track_index, time):
+        return self.timeline[track_index].get_value[time]
+
+
+class Timeline:
+    def __init__(self):
+        self.timeline = defaultdict(lambda: None)
+
+    def set_value(self, time, value):
+        self.timeline[time] = value
+
+    def get_value(self, time):
+        return self.timeline[time]
+
+    def get_time(self, time_index):
+        return self.timeline.keys()[time_index]
 
 
 class ExperimentalReader:
@@ -359,3 +447,5 @@ class TrackMetaContext:
 # experimentalReader.load()
 # transcript = experimentalReader.transcript
 # print transcript
+
+

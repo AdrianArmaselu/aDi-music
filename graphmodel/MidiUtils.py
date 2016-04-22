@@ -39,7 +39,7 @@ check MIT music21
 """
 
 
-def is_event(event):
+def is_channel_event(event):
     """
     :param event: Midi event
     :return: boolean
