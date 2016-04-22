@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from collections import defaultdict
 import sys
 
 from graphmodel import MidiUtils
@@ -107,13 +108,15 @@ class OrganizedNotesTable(NotesTable):
         return string
 
 
+# TODO: reorganize tracks after adding notes
 class MusicTranscript(object):
     """
     Simple data structure for storing sound events on multiple tracks
     """
 
     def __init__(self, ):
-        self.tracks = {}
+        self.tracks = defaultdict(lambda: defaultdict(SoundEvent))
+        self.times = defaultdict(lambda: [])
 
     def add_tracks(self, notes_table):
         """
@@ -121,33 +124,22 @@ class MusicTranscript(object):
         The objects are then added to tracks, where each track corresponds to a channel
         """
         table = notes_table.table
-        for channel in notes_table.channels:
-            self.tracks[channel] = []
         for tick in table:
             for channel in table[tick]:
                 notes = []
                 for pitch in table[tick][channel]:
                     notes.append(table[tick][channel][pitch])
-                sound_event = SoundEvent(notes)
-                # TODO: IF THE NOTE IF A DIFFERENT CHANNEL BUT IT IS PART OF A SOUND EVENT WITH MULTIPLE NOTES, THEN IT IS NOT PART OF THAT CHORD
-                self.tracks[channel].append(sound_event)
+                self.tracks[channel][notes[0].time] = SoundEvent(notes)
 
-    def add_track(self, channel, track):
-        self.tracks[channel] = track
+    def add_track(self, channel, sound_events):
+        for sound_event in sound_events:
+            self.tracks[channel][sound_event.time] = sound_event
 
     def get_sound_events(self, channel):
-        return self.tracks[channel]
+        return self.tracks[channel].values()
 
     def get_channels(self):
         return self.tracks.keys()
-
-    def __str__(self):
-        string = "MusicalTranscript:\n"
-        for channel in self.tracks:
-            string += "Track: %d\n" % channel
-            for sound_event in self.tracks[channel]:
-                string += str(sound_event) + "\n"
-        return string
 
     def get_track(self, channel):
         return self.tracks[channel]
@@ -160,6 +152,28 @@ class MusicTranscript(object):
         if channel not in self.tracks:
             self.tracks[channel] = []
         self.tracks[channel].append(sound_event)
+
+    def add_note(self, note):
+        self.times[note.channel].append(note.time)
+        self.tracks[note.channel][note.time].add_note(note)
+
+    def get_last_sound_event(self, channel, skip):
+        last_index = len(self.times[channel]) - 1
+        last_time = self.times[channel][last_index]
+        return self.tracks[channel][last_time]
+
+    def get_sound_event_from_last(self, channel, skip):
+        index = len(self.times[channel]) - 1 - skip
+        time = self.times[channel][index]
+        return self.tracks[channel][time]
+
+    def __str__(self):
+        string = "MusicalTranscript:\n"
+        for channel in self.tracks:
+            string += "Track: %d\n" % channel
+            for time in self.tracks[channel]:
+                string += "\t" + str(time) + ": " + str(self.tracks[channel][time]) + "\n"
+        return string
 
 
 class Frame(object):
@@ -212,13 +226,22 @@ class SoundEvent(object):
     If the size of the list is greater than 1 - this object symbolizes a chord
     """
 
-    def __init__(self, notes):
+    def __init__(self, notes=None):
+        self.time = 0
+        if notes is None:
+            notes = []
+        else:
+            self.time = notes[0].time
         # sorted by duration
-        self.notes = ()
-        for note in sorted(notes, key=lambda note: note.pause_to_next_note):
-            self.notes += (note,)
+        self.notes = notes
         # self.notes = notes
         self.hash = None
+        self.isModified = True
+        self.isSorted = False
+
+    def add_note(self, note):
+        self.notes.append(note)
+        self.isModified = True
 
     def get_channel(self):
         return self.notes[0].channel
@@ -229,23 +252,34 @@ class SoundEvent(object):
     def shortest_note(self):
         return self.notes[0]
 
+    # TODO: CHECK THIS LATER
     def get_smallest_duration(self):
-        min_ticks = sys.maxint
+        self._sort_notes_if_not_sorted()
+        min_ticks = None
         for note in self.notes:
-            if note.next_delta_ticks < min_ticks:
+            if min_ticks is None or note.pause_to_next_note < min_ticks:
                 min_ticks = note.duration_ticks
         return min_ticks
 
+    def _sort_notes_if_not_sorted(self):
+        if not self.isSorted:
+            self.notes = sorted(self.notes, key=lambda note: note.pause_to_next_note)
+            self.isSorted = True
+
     def __hash__(self):
-        if not self.hash:
-            self.hash = (hash(self.notes) << 4) | len(self.notes)
+        if not self.hash or self.isModified:
+            self._sort_notes_if_not_sorted()
+            notes_tuple = ()
+            for note in self.notes:
+                notes_tuple += (note,)
+            self.hash = (hash(notes_tuple) << 4) | len(notes_tuple)
         return self.hash
 
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()
 
     def __str__(self):
-        string = "SoundEvent:\n"
+        string = "SoundEvent: "
         for note in self.notes:
             string += str(note) + " "
         return string
@@ -257,9 +291,9 @@ class Note(object):
     """
     SHOW_CONTEXT_INFO = False
 
-    def __init__(self, timeline_tick, duration_ticks, event, meta_context=None):
+    def __init__(self, time, duration_ticks, event, meta_context=None):
         # timestamp from original song - used purely for debugging purposes
-        self.timeline_tick = timeline_tick
+        self.time = time
 
         # how long to play this note (not how many ticks until next note)
         self.duration_ticks = duration_ticks
@@ -274,8 +308,6 @@ class Note(object):
         self.velocity = event.velocity
 
         self.meta_context = meta_context
-        # TODO: USE THIS WHEN DOING COMPLEX METADATA RESOLUTION
-        self.context = []
         self.hash = None
 
     # ticks | channel | pitch | velocity
@@ -299,7 +331,7 @@ class Note(object):
             "Note(timeline:%d, t:%d, "
             "dt-:%d, dt+:%d, "
             "ch:%d, pitch:%d, vol:%d" %
-            (self.timeline_tick, self.duration_ticks,
+            (self.time, self.duration_ticks,
              self.pause_to_previous_note, self.pause_to_next_note,
              self.channel, self.pitch, self.velocity))
         if self.SHOW_CONTEXT_INFO:
