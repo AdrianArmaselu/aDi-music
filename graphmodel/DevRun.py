@@ -50,7 +50,7 @@ def run_multi_channel():
 # midi_file = "music/Eminem/thewayiam.mid"
 midi_file = "music/mary.mid"
 # midi_file = "music/bach.mid"
-num_sound_events = 200
+num_sound_events = 20
 policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
                                            FrameSelectionPolicy.RANDOM,
                                            MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
@@ -68,7 +68,8 @@ transcript = MusicTranscript()
 transcript.add_tracks(table)
 logger.info("Created MusicalTranscript")
 
-transcript = run_multi_channel()
+# transcript = run_multi_channel()
+transcript = run_single_channel()
 pattern = to_midi_pattern(transcript)
 logger.info("Converted Transcript")
 

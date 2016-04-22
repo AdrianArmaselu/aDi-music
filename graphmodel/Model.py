@@ -86,12 +86,12 @@ class OrganizedNotesTable(NotesTable):
             for channel in self.table[tick]:
                 for pitch in self.table[tick][channel]:
                     note = self.table[tick][channel][pitch]
-                    note.previous_delta_ticks = note.timeline_tick - previous_tick
+                    note.pause_to_previous_note = note.timeline_tick - previous_tick
             # compute duration to next note from the previous one
             for channel in self.table[previous_tick]:
                 for pitch in self.table[previous_tick][channel]:
                     note = self.table[previous_tick][channel][pitch]
-                    note.next_delta_ticks = tick - note.timeline_tick
+                    note.pause_to_next_note = tick - note.timeline_tick
             previous_tick = tick
 
     def __str__(self):
