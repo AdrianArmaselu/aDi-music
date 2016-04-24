@@ -165,7 +165,7 @@ def is_new_note(event):
 
 def note_on_event(note):
     """
-    :param note: Model Note
+    :param note: model Note
     :return: Midi Event
     """
     return midi.NoteOnEvent(channel=note.channel, tick=0, pitch=note.pitch,
@@ -174,7 +174,7 @@ def note_on_event(note):
 
 def note_off_event(note):
     """
-    :param note: Model Note
+    :param note: model Note
     :return: Midi Event
     """
     return midi.NoteOnEvent(channel=note.channel, tick=0, pitch=note.pitch,

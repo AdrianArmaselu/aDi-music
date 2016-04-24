@@ -1,12 +1,14 @@
 import logging
 from random import randint
+
 import midi
-from MidiIO import MidiIO
-from Model import MusicTranscript, Frame
-from NGram import SingleChannelNGram
-from Policies import FrameSelectionPolicy, PolicyConfiguration, ChannelMixingPolicy, \
+
+from NGram import SingleChannelNGram, Frame
+from graphmodel.io import Reader
+from graphmodel.model.Policies import FrameSelectionPolicy, PolicyConfiguration, ChannelMixingPolicy, \
     MetadataResolutionPolicy
-from graphmodel.MidiConverter import to_midi_pattern
+from graphmodel.io.Converter import to_midi_pattern
+from graphmodel.model.Song import MusicTranscript
 
 __author__ = 'Adisor'
 
@@ -38,12 +40,12 @@ class SingleChannelGenerator(object):
         Generates a track and adds it to the transcript on the specific channel
         :return:
         """
-        generated_track = []
+        generated_track = SimpleTrack()
         # first frame
         frame = self.ngram.get_first_frame()
         while len(generated_track) < self.song_duration:
             for sound_event in frame.sound_events:
-                generated_track.append(sound_event)
+                generated_track.add_sound_event(sound_event)
             frame = self.next_frame(frame.last_sound_event())
             # we are only concerned about elements after the first one
             frame = Frame(self.ngram.frame_size, frame.sound_events[1:])
@@ -85,6 +87,20 @@ class SingleChannelGenerator(object):
         return frame
 
 
+class SimpleTrack:
+    def __init__(self):
+        self.sound_events = []
+
+    def add_sound_event(self, sound_event):
+        return self.sound_events.append(sound_event)
+
+    def get_sound_events(self):
+        return self.sound_events
+
+    def __len__(self):
+        return len(self.sound_events)
+
+
 class MultiChannelGenerator:
     def __init__(self, multichannel_ngram, song_duration, policy_configuration):
         self.multichannel_ngram = multichannel_ngram
@@ -111,13 +127,11 @@ logger.setLevel(logging.INFO)
 
 def generate(input_file, num_sound_events, folder='default'):
     policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
-                                               FrameSelectionPolicy.RANDOM,
+                                                FrameSelectionPolicy.RANDOM,
                                                MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
-    data = MidiIO("%s/%s" % (folder, input_file))
-    musical_transcript = MusicTranscript()
-    musical_transcript.add_tracks(data.notes_table)
+    in_transcript = Reader.get_transcript("%s/%s" % (folder, input_file))
     ngram = SingleChannelNGram(2)
-    ngram.build_from_transcript(musical_transcript)
+    ngram.build_from_transcript(in_transcript)
     generator = SingleChannelGenerator(ngram, num_sound_events, policy_configuration)
     generator.generate(0)
     pattern = to_midi_pattern(generator.transcript)

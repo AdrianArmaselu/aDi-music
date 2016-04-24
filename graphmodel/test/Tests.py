@@ -1,11 +1,6 @@
-from collections import defaultdict
-import logging
-import time
 import midi
-from midi.events import SetTempoEvent
-import pygame
-from graphmodel import MidiUtils
-from graphmodel.MidiIO import MidiIO
+
+from graphmodel.utils import MidiUtils
 
 __author__ = 'Adisor'
 

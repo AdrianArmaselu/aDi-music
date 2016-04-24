@@ -29,6 +29,7 @@ class MusicTranscript(object):
         return self.tracks.values()
 
     def add_note(self, note):
+        # add note and update pauses and ticks
         self.tracks[note.channel].add_note(note)
 
     def get_sound_event(self, channel, time_index):
@@ -50,7 +51,9 @@ class SoundEventsTimedTrack:
         self.sound_events = defaultdict(SoundEvent)
 
     def add_note(self, note):
-        self.times.append(note.time)
+        # add the time to the list if it is not in it
+        if len(self.times) == 0 or self.times[len(self.times) - 1] != note.time:
+            self.times.append(note.time)
         self.sound_events[note.time].add_note(note)
 
     def get_sound_event(self, time_index):

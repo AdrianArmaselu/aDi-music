@@ -1,12 +1,14 @@
 import logging
+
 import midi
 import pygame
+
 from graphmodel.Generator import SingleChannelGenerator, MultiChannelGenerator
-from graphmodel.MidiConverter import to_midi_pattern
-from graphmodel.MidiIO import MidiIO
-from graphmodel.Model import MusicTranscript, Note
 from graphmodel.NGram import SingleChannelNGram, MultiChannelNGram
-from graphmodel.Policies import PolicyConfiguration, ChannelMixingPolicy, FrameSelectionPolicy, MetadataResolutionPolicy
+from graphmodel.model.Policies import PolicyConfiguration, ChannelMixingPolicy, FrameSelectionPolicy, MetadataResolutionPolicy
+from graphmodel.io.Converter import to_midi_pattern
+from graphmodel.io.Reader import TranscriptLoader
+from graphmodel.model.SongObjects import Note
 
 __author__ = 'Adisor'
 
@@ -18,9 +20,9 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-def run_single_channel():
+def run_single_channel(transcript):
     # construct the ngram
-    ngram = SingleChannelNGram(20)
+    ngram = SingleChannelNGram(5)
     ngram.build_from_transcript(transcript)
     # print ngram
     logger.info("Created NGram")
@@ -32,9 +34,9 @@ def run_single_channel():
     return generator.transcript
 
 
-def run_multi_channel():
+def run_multi_channel(transcript):
     # construct the ngram
-    ngram = MultiChannelNGram(20)
+    ngram = MultiChannelNGram(5)
     ngram.build_from_transcript(transcript)
     logger.info("Created NGram")
 
@@ -47,42 +49,35 @@ def run_multi_channel():
 
 
 # define properties
-# define properties
 # midi_file = "music/Eminem/thewayiam.mid"
-# midi_file = "music/mary.mid"
-midi_file = "music/bach.mid"
-num_sound_events = 20
+midi_file = "music/mary.mid"
+# midi_file = "music/bach.mid"
+num_sound_events = 200
 policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
                                            FrameSelectionPolicy.RANDOM,
                                            MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
 logger.info("Starting Application...")
-data = MidiIO(midi_file)
-logger.info(data)
+reader = TranscriptLoader(midi_file)
 logger.info("Loaded data from file")
 
-# get the notes table
-table = data.notes_table
-logger.info(data.notes_table)
+reader.load()
+in_transcript = reader.transcript
+print in_transcript
+transcript = run_multi_channel(in_transcript)
+# transcript = run_single_channel(transcript)
 
-# build the musical transcript
-transcript = MusicTranscript()
-transcript.add_tracks(table)
-logger.info("Created MusicalTranscript")
-
-# transcript = run_multi_channel()
-transcript = run_single_channel()
 pattern = to_midi_pattern(transcript)
 logger.info("Converted Transcript")
 
-midi.write_midifile("devrun.mid", pattern)
+midi.write_midifile("../output/devrun.mid", pattern)
 logger.info("Saved to File")
 
-pattern = midi.read_midifile("devrun.mid")
+pattern = midi.read_midifile("../output/devrun.mid")
 logger.info(pattern)
 
 #play the music
 pygame.init()
-pygame.mixer.music.load("devrun.mid")
+pygame.mixer.music.load("../output/devrun.mid")
 pygame.mixer.music.play()
 #
 while pygame.mixer.music.get_busy():

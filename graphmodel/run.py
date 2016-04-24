@@ -1,6 +1,6 @@
-from __future__ import print_function # In python 2.7
+from __future__ import print_function  # In python 2.7
 import os, sys
-from flask import Flask, request, redirect, url_for, json, make_response,request
+from flask import Flask, request, redirect, url_for, json, make_response, request
 from flask import send_from_directory
 from flask import render_template
 from werkzeug import secure_filename
@@ -13,14 +13,13 @@ ALLOWED_EXTENSIONS = set(['mid'])
 app = Flask(__name__)
 
 
-
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
+
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
-
     folder_name = request.cookies.get('foldername')
     if not folder_name:
         print("no foldername")
@@ -28,7 +27,7 @@ def upload_file():
         folder_path = os.makedirs(UPLOAD_FOLDER_PREFIX.format(folder_name))
         print(folder_path)
 
-    #folder_name = request.cookies.get('foldername')
+    # folder_name = request.cookies.get('foldername')
     upload_folder = UPLOAD_FOLDER_PREFIX.format(folder_name)
 
     if request.method == 'POST':
@@ -43,10 +42,11 @@ def upload_file():
 
     songs = os.listdir(upload_folder)
     resp = make_response(render_template("index.html",
-                        title = 'Sebastian Music', songs=songs, upload_folder=upload_folder))
+                                         title='Sebastian Music', songs=songs, upload_folder=upload_folder))
     resp.set_cookie('foldername', folder_name)
 
     return resp
+
 
 def get_foldername():
     STRING_LENGTH = 20
@@ -62,6 +62,7 @@ def delete_song():
     os.remove(song)
     return redirect(url_for('upload_file'))
 
+
 # @app.route('/songs')
 # def index():
 #     music_files = [f for f in os.listdir(UPLOAD_FOLDER) if f.endswith('mid')]
@@ -73,8 +74,9 @@ def delete_song():
 
 @app.route('/songs/<filename>')
 def uploaded_file(filename):
-     return send_from_directory(app.config['UPLOAD_FOLDER'],
-                                filename)
+    return send_from_directory(app.config['UPLOAD_FOLDER'],
+                               filename)
+
 
 if __name__ == '__main__':
     # app.run(debug=True)

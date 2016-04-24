@@ -1,4 +1,4 @@
-from graphmodel import MidiUtils
+from graphmodel.utils import MidiUtils
 
 __author__ = 'Adisor'
 

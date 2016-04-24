@@ -1,5 +1,4 @@
 from random import randint
-from Model import Frame
 
 __author__ = 'Adisor'
 
@@ -13,7 +12,9 @@ TODO: Methods for increasing distribution counts:
 """
 
 
+# TODO: SOME FRAMES HAVE LONG DISTANCES BETWEEN NOTES
 # TODO: BUILD NGRAMS WITH PAUSES INCLUDED IN FRAMES, SEE WHAT HAPPENS
+# TODO: ADD A LIMIT TO THE SIZE OF THE NGRAM TO BE LESS THAN THE SIZE OF THE SONG ITSELF - MAYBE ADD A RATION
 
 class SingleChannelNGram(object):
     """
@@ -37,7 +38,7 @@ class SingleChannelNGram(object):
         self.build_frames(frames, track)
 
     def build_frames(self, frames, track):
-        for sound_event in track:
+        for sound_event in track.get_sound_events():
             frames.add(sound_event)
             # update the count with the first frame
             if frames.is_first_frame_full():
@@ -140,3 +141,46 @@ class OrderedFrames(object):
 
     def __sizeof__(self):
         return len(self.frames)
+
+
+class Frame(object):
+    """
+    Object that encapsulates a tuple of SoundEvent objects
+    """
+
+    def __init__(self, max_size, sound_events=None):
+        self.max_size = max_size
+        if sound_events is None:
+            self.sound_events = ()
+        else:
+            self.sound_events = sound_events
+        self.hash = None
+
+    def add(self, sound_event):
+        self.sound_events += (sound_event,)
+
+    def is_full(self):
+        return self.__sizeof__() == self.max_size
+
+    def first(self):
+        return self.sound_events[0]
+
+    def last_sound_event(self):
+        return self.sound_events[-1]
+
+    def __sizeof__(self):
+        return len(self.sound_events)
+
+    def __hash__(self):
+        if not self.hash:
+            self.hash = hash(self.sound_events)
+        return self.hash
+
+    def __eq__(self, other):
+        return self.__hash__() == other.__hash__()
+
+    def __str__(self):
+        string = "Frame:\n"
+        for sound_event in self.sound_events:
+            string += str(sound_event) + "\n"
+        return string
