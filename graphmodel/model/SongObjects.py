@@ -7,7 +7,6 @@ class SoundEvent(object):
     """
 
     def __init__(self):
-        self.time = 0
         self.notes = []
         self.hash = None
 
@@ -35,6 +34,14 @@ class SoundEvent(object):
 
     def get_notes(self):
         return self.notes
+
+    def update_pause_to_next_note(self, pause):
+        for note in self.notes:
+            note.pause_to_next_note = pause
+
+    def update_pause_to_previous_note(self, pause):
+        for note in self.notes:
+            note.pause_to_previous_note = pause
 
     def __hash__(self):
         if self.hash is None:

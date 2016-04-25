@@ -1,4 +1,5 @@
 from random import randint
+import time
 
 __author__ = 'Adisor'
 
@@ -40,6 +41,7 @@ class SingleChannelNGram(object):
     def build_frames(self, frames, track):
         for sound_event in track.get_sound_events():
             frames.add(sound_event)
+
             # update the count with the first frame
             if frames.is_first_frame_full():
                 frame = frames.remove_first()

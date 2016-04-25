@@ -2,7 +2,7 @@ import midi
 
 from graphmodel.utils import MidiUtils
 from graphmodel.model.Meta import MetaContext
-from graphmodel.model.Song import MusicTranscript
+from graphmodel.model.Song import MusicTranscript, SoundEventsTimedTrack
 from graphmodel.model.SongObjects import Note
 
 __author__ = 'Adisor'
@@ -22,8 +22,8 @@ class TranscriptLoader:
 
     def load(self):
         self.load_context()
-        for track in self.pattern:
-            self.load_track(track)
+        for track_index in range(1, len(self.pattern), 1):
+            self.load_track(self.pattern[track_index])
 
     def load_context(self):
         contexts = GlobalMetaContexts()
@@ -43,38 +43,34 @@ class TrackLoader:
     def __init__(self, context_tracker, transcript):
         self.context_tracker = context_tracker
         self.transcript = transcript
-        self.time = 0
+        self.present_time = 0
         self.current_context = MetaContext()
         self.on_notes = {}
-        self.recent_off_notes = {}
 
+    # TODO: SET CHANEL ONCE
     def load_track(self, track):
+        timed_track = SoundEventsTimedTrack()
+        channel = 0
         for event_index in range(0, len(track), 1):
             event = track[event_index]
-            self.time += event.tick
+            self.present_time += event.tick
             self.update_context(event)
             if MidiUtils.is_new_note(event):
-                note = Note(self.time, 0, event, self.current_context)
+                note = Note(self.present_time, 0, event, self.current_context)
                 self.on_notes[note.pitch] = note
-                self.update_and_remove_recent_off_notes(event)
-                note.pause_to_previous_note = note.time - self.transcript.get_time_lt(event.channel, self.time)
-                self.transcript.add_note(note)
+                timed_track.add_note(note)
+                channel = event.channel
             if MidiUtils.has_note_ended(event):
                 note = self.on_notes[event.pitch]
-                note.duration = self.time - note.time
-                self.recent_off_notes[note.pitch] = note
+                note.duration = self.present_time - note.time
+        if len(timed_track) != 0:
+            self.transcript.add_track(channel, timed_track)
 
     def update_context(self, event):
-        global_context = self.context_tracker.get_context_at_time(self.time)
+        global_context = self.context_tracker.get_context_at_time(self.present_time)
         self.current_context.update_from_context(global_context)
         if MidiUtils.is_music_control_event(event):
             self.current_context.update_from_event(event)
-
-    def update_and_remove_recent_off_notes(self, event):
-        if event.tick != 0:
-            for note in self.recent_off_notes.values():
-                note.pause_to_next_note = self.time - note.time
-                del self.recent_off_notes[note.pitch]
 
 
 class GlobalMetaContexts(list):
@@ -130,7 +126,7 @@ class Analyzer:
     def perform_analysis(self):
         # check for unprocessed events
         for track in self.pattern:
-            channel  = -1
+            channel = -1
             for event in track:
                 if MidiUtils.is_channel_event(event):
                     if channel == -1:

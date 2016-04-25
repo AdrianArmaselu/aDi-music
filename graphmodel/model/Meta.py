@@ -3,6 +3,8 @@ from graphmodel.utils import MidiUtils
 __author__ = 'Adisor'
 
 
+# TODO: USE A DICT INSTEAD OF SO MANY FIELD VARIABLES
+# TODO: CAN HAVE MULTIPLE CONTROL EVENTS
 class MetaContext:
     def __init__(self, time_signature=None, tempo=None, key_signature=None, control=None, port=None, program=None):
         self.time_signature_event = time_signature

@@ -1,4 +1,6 @@
+from collections import OrderedDict
 import midi
+import treemap as treemap
 
 from graphmodel.utils import MidiUtils
 
@@ -22,6 +24,8 @@ MidiUtils.delete_tracks(pattern, 3, len(pattern))
 # Utils.change_key_signature(pattern[0], [0, 1])
 # # print pattern
 midi.write_midifile("test.mid", pattern)
+
+
 #
 # pattern = midi.read_midifile("test.mid")
 # # pattern = midi.read_midifile("../music/Eminem/thewayiam.mid")
@@ -32,3 +36,6 @@ midi.write_midifile("test.mid", pattern)
 # while pygame.mixer.music.get_busy():
 #     pygame.time.wait(1000)
 
+class InsertableOrderedDict(OrderedDict):
+    def add(self, other):
+        self.keys()

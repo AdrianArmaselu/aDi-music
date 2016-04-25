@@ -49,7 +49,7 @@ class SingleChannelGenerator(object):
             frame = self.next_frame(frame.last_sound_event())
             # we are only concerned about elements after the first one
             frame = Frame(self.ngram.frame_size, frame.sound_events[1:])
-        self.transcript.add_track(channel, generated_track)
+        self.transcript.set_track(channel, generated_track)
 
     # find the frame with the maximum count that starts with last_sound_event
     def next_frame(self, last_sound_event):
@@ -116,7 +116,7 @@ class MultiChannelGenerator:
             single_channel_generator = SingleChannelGenerator(self.multichannel_ngram.get_ngram(channel),
                                                               self.song_duration, self.policies)
             single_channel_generator.generate(channel)
-            self.transcript.add_track(channel, single_channel_generator.transcript.get_track(channel))
+            self.transcript.set_track(channel, single_channel_generator.transcript.get_track(channel))
 
 
 FORMAT = '%(asctime)-12s %(message)s'
