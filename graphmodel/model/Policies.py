@@ -29,6 +29,7 @@ class FrameSelectionPolicy:
 
     HIGHEST_COUNT = 0
     RANDOM = 1
+    PROB = 2 # Probabilistic 
 
 
 class MetadataResolutionPolicy:
