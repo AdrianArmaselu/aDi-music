@@ -58,11 +58,15 @@ class SingleChannelGenerator(object):
             next_frame = self.get_next_highest_count_frame(last_sound_event)
         if self.policies.selection_policy is FrameSelectionPolicy.RANDOM:
             next_frame = self.get_random_next_frame(last_sound_event)
+        if self.policies.selection_policy is FrameSelectionPolicy.PROB:
+            next_frame = self.get_prob_next_frame(last_sound_event)
         return next_frame
 
     def get_next_highest_count_frame(self, last_sound_event):
         next_frame = None
         max_count = 0
+        if not self.ngram.has_index(last_sound_event):
+            return self.ngram.get_random_frame()
         indexes = self.ngram.get_sound_event_indexes(last_sound_event)
         for index in indexes:
             frame = self.ngram.get_indexed_frame(index)
@@ -70,6 +74,32 @@ class SingleChannelGenerator(object):
             if frame.first() == last_sound_event and (count > max_count):
                 max_count = count
                 next_frame = frame
+        # this means we reached the end of the samples, pick a random next frame
+        if next_frame is None:
+            next_frame = self.ngram.get_random_frame()
+        return next_frame
+
+    def get_prob_next_frame(self, last_sound_event):
+        # Gets the next frame according to probability
+        next_frame = None
+        total_count = 0
+        frame_list = []
+        count_list = []
+        if not self.ngram.has_index(last_sound_event):
+            return self.ngram.get_random_frame()
+        indexes = self.ngram.get_sound_event_indexes(last_sound_event)
+        for index in indexes:
+            frame = self.ngram.get_indexed_frame(index)
+            count = self.ngram.get_frame_count(frame)
+            if frame.first() == last_sound_event:
+                total_count += count
+                frame_list.append(frame)
+                count_list.append(total_count)
+        key = randint(0, total_count)
+        for i, count in enumerate(count_list):
+            if key <= count:
+                next_frame = frame_list[i]
+                break
         # this means we reached the end of the samples, pick a random next frame
         if next_frame is None:
             next_frame = self.ngram.get_random_frame()
