@@ -94,9 +94,12 @@ def is_music_control_event(event):
     :param event: Midi Event
     :return: boolean
     """
-    # TODO: test if this works
     event_type = get_event_type(event)
     return event_type in music_control_events
+    # is_event = isinstance(event, events.Event)
+    # is_not_note_event = not isinstance(event, events.NoteEvent)
+    # is_not_text_event = not isinstance(event, events.MetaEventWithText)
+    # return is_event and is_not_note_event and is_not_text_event
 
 
 def is_time_signature_event(event):

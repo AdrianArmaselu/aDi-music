@@ -16,7 +16,11 @@ TODO: Methods for increasing distribution counts:
 # TODO: SOME FRAMES HAVE LONG DISTANCES BETWEEN NOTES
 # TODO: BUILD NGRAMS WITH PAUSES INCLUDED IN FRAMES, SEE WHAT HAPPENS
 # TODO: ADD A LIMIT TO THE SIZE OF THE NGRAM TO BE LESS THAN THE SIZE OF THE SONG ITSELF - MAYBE ADD A RATION
-
+# TODO: DEBUG THIS
+# TODO: SOME NOTES GO INTO LOWER VOLUME DURING PLAY
+# TODO: REGENERATING ON EACH CHANNEL DOES NOT YIELD A PLEASANT SOUND
+# TODO: TEMPO EVENTS MUST BE PLACED IN A SPECIFIC WAY OTHERWISE IT SOUNDS BAD
+# TODO: DO NOT KNOW IF THE NOTES ARE PLACED INTO CHANNELS APPROPRIATELY
 class SingleChannelNGram(object):
     """
     Builds a distribution map that counts the number of unique frames in the song. Key is frame, value is count
@@ -31,8 +35,8 @@ class SingleChannelNGram(object):
         self.sound_event_indexes = {}
 
     def build_from_transcript(self, music_transcript):
-        for track in music_transcript.tracks:
-            self.build_from_track(music_transcript.get_sound_events(track))
+        for channel in music_transcript.get_channels():
+            self.build_from_track(music_transcript.track(channel))
 
     def build_from_track(self, track):
         frames = OrderedFrames(self.frame_size)
@@ -100,10 +104,10 @@ class MultiChannelNGram:
         for channel in music_transcript.get_channels():
             self.add_channel_track(channel, music_transcript.get_track(channel))
 
-    def add_channel_track(self, channel, track):
+    def add_channel_track(self, channel, sound_events):
         if channel not in self.channel_ngrams:
             self.channel_ngrams[channel] = SingleChannelNGram(self.size)
-        self.channel_ngrams[channel].build_from_track(track)
+        self.channel_ngrams[channel].build_from_track(sound_events)
 
     def get_channels(self):
         return self.channel_ngrams.keys()

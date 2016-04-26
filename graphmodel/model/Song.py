@@ -11,8 +11,12 @@ class MusicTranscript(object):
     Simple data structure for storing sound events on multiple tracks
     """
 
-    def __init__(self, ):
+    def __init__(self, pattern=None):
         self.tracks = defaultdict(lambda: None)
+        self.original_pattern = pattern
+
+    def set_pattern(self, pattern):
+        self.original_pattern = pattern
 
     def set_track(self, channel, track):
         self.tracks[channel] = track
@@ -21,43 +25,43 @@ class MusicTranscript(object):
         if self.tracks[channel] is None:
             self.set_track(channel, track)
         else:
-            final_track = SoundEventsTimedTrack()
-            param_times = track.times()
-            param_index = 0
-            times = self.tracks[channel].times()
-            index = 0
-            # merge both tracks into one track and respect times
-            while param_index < len(param_times) or index < len(times):
-                if param_index < len(param_times):
-                    param_time = param_times[param_index]
-                if index < len(times):
-                    time = times[index]
-                # merge from param track
-                can_add = (param_time < time or (param_time > time and index == len(times)))
-                if param_index < len(param_times) and can_add:
-                    self.add_notes_to_track(track, final_track, param_time)
-                    param_index += 1
-                # merge from both tracks
-                if param_time == time:
-                    self.add_notes_to_track(track, final_track, param_time)
-                    self.add_notes_to_track(self.tracks[channel], final_track, time)
-                    param_index += 1
-                    index += 1
-                # merge from self track
-                can_add = (param_time > time or (param_time < time and param_index == len(param_times)))
-                if index < len(times) and can_add:
-                    self.add_notes_to_track(self.tracks[channel], final_track, time)
-                    index += 1
+            self.merge_tracks(channel, track)
 
-            self.set_track(channel, final_track)
+    def merge_tracks(self, channel, track):
+        final_track = SoundEventsTimedTrack()
+        param_times = track.times()
+        param_index = 0
+        times = self.tracks[channel].times()
+        index = 0
+        # merge both tracks into one track and respect times
+        while param_index < len(param_times) or index < len(times):
+            if param_index < len(param_times):
+                param_time = param_times[param_index]
+            if index < len(times):
+                time = times[index]
+            # merge from param track
+            can_add = (param_time < time or (param_time > time and index == len(times)))
+            if param_index < len(param_times) and can_add:
+                self.add_notes_to_track(track, final_track, param_time)
+                param_index += 1
+            # merge from both tracks
+            if param_time == time:
+                self.add_notes_to_track(track, final_track, param_time)
+                self.add_notes_to_track(self.tracks[channel], final_track, time)
+                param_index += 1
+                index += 1
+            # merge from self track
+            can_add = (param_time > time or (param_time < time and param_index == len(param_times)))
+            if index < len(times) and can_add:
+                self.add_notes_to_track(self.tracks[channel], final_track, time)
+                index += 1
+
+        self.set_track(channel, final_track)
 
     @staticmethod
     def add_notes_to_track(from_track, to_track, time):
         for note in from_track.get_sound_event(time).get_notes():
             to_track.add_note(note)
-
-    def get_sound_events(self, channel):
-        return self.tracks[channel].get_sound_events()
 
     def get_channels(self):
         return self.tracks.keys()
@@ -67,12 +71,6 @@ class MusicTranscript(object):
 
     def get_tracks(self):
         return self.tracks.values()
-
-    def get_sound_event(self, channel, time_index):
-        return self.tracks[channel].get_sound_event(time_index)
-
-    def get_time_lt(self, channel, time):
-        return self.tracks[channel].get_time_lt(time)
 
     def __str__(self):
         string = "MusicalTranscript:\n"

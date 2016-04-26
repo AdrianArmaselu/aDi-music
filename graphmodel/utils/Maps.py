@@ -20,9 +20,6 @@ class HashSet:
         return self.set.keys()
 
 
-total_instructions = 0
-
-
 # this is really slow because tree becomes unbalanced and implementing rotation algorithms is not trivial
 class BadBinarySearchTreeNode:
     def __init__(self, key_comparator):
@@ -56,8 +53,6 @@ class BadBinarySearchTreeNode:
 
     def get_key_gt(self, key, greater_key=None):
         def constraint_function(key1, key2):
-            global total_instructions
-            total_instructions += 1
             if key1 is None or key2 is None:
                 return False
             return self.key_comparator(key1, key2) > 0
@@ -66,8 +61,6 @@ class BadBinarySearchTreeNode:
 
     def get_key_lt(self, key, smaller_key=None):
         def constraint_function(key1, key2):
-            global total_instructions
-            total_instructions += 1
             if key1 is None or key2 is None:
                 return False
             return self.key_comparator(key1, key2) < 0
@@ -181,7 +174,6 @@ class TreeDict:
 class HeapDict:
     def __init__(self):
         self.items = []
-
 
 
 def test():

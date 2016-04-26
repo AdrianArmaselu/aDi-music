@@ -5,12 +5,11 @@ import pygame
 
 from graphmodel.Generator import SingleChannelGenerator, MultiChannelGenerator
 from graphmodel.NGram import SingleChannelNGram, MultiChannelNGram
-from graphmodel.model.Policies import PolicyConfiguration, ChannelMixingPolicy, FrameSelectionPolicy, MetadataResolutionPolicy
+from graphmodel.model.Policies import PolicyConfiguration, ChannelMixingPolicy, FrameSelectionPolicy, \
+    MetadataResolutionPolicy
 from graphmodel.io.Converter import to_midi_pattern
 from graphmodel.io.Reader import TranscriptLoader
 from graphmodel.model.SongObjects import Note
-from graphmodel.utils import Maps
-from graphmodel.utils.Maps import BadBinarySearchTreeNode
 
 __author__ = 'Adisor'
 
@@ -51,10 +50,11 @@ def run_multi_channel(transcript):
 
 
 # define properties
-# midi_file = "music/Eminem/thewayiam.mid"
-midi_file = "music/mary.mid"
+midi_file = "music/Eminem/thewayiam.mid"
+# midi_file = "music/cosifn2t.mid"
+# midi_file = "music/mary.mid"
 # midi_file = "music/bach.mid"
-num_sound_events = 2
+num_sound_events = 20
 policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
                                            FrameSelectionPolicy.RANDOM,
                                            MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
@@ -63,14 +63,14 @@ reader = TranscriptLoader(midi_file)
 reader.load()
 logger.info("Loaded data from file")
 
-print Maps.total_instructions
 in_transcript = reader.transcript
-print reader.pattern
+# print reader.pattern
 print in_transcript
 transcript = run_multi_channel(in_transcript)
-# transcript = run_single_channel(transcript)
+# transcript = run_single_channel(in_transcript)
 
 pattern = to_midi_pattern(transcript)
+# pattern = to_midi_pattern(in_transcript)
 logger.info("Converted Transcript")
 
 midi.write_midifile("../output/devrun.mid", pattern)
@@ -79,7 +79,7 @@ logger.info("Saved to File")
 pattern = midi.read_midifile("../output/devrun.mid")
 logger.info(pattern)
 
-#play the music
+# play the music
 pygame.init()
 pygame.mixer.music.load("../output/devrun.mid")
 pygame.mixer.music.play()

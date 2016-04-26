@@ -1,4 +1,3 @@
-from collections import defaultdict
 import midi
 
 from graphmodel.utils import MidiUtils
@@ -19,7 +18,7 @@ class TranscriptLoader:
     def __init__(self, midifile):
         self.pattern = midi.read_midifile(midifile)
         self.track_loader = None
-        self.transcript = MusicTranscript()
+        self.transcript = MusicTranscript(self.pattern)
         self.instrument_channel = {}
 
     def load(self):
@@ -60,7 +59,6 @@ class TrackLoader:
         self.channel = 0
         self.program_change_event = None
 
-    # TODO: SET CHANnEL ONCE
     def load_track(self, track):
         on_notes = {}
         timed_track = SoundEventsTimedTrack()
@@ -71,7 +69,7 @@ class TrackLoader:
             if MidiUtils.is_program_change_event(event):
                 self.program_change_event = event
             if MidiUtils.is_new_note(event):
-                note = Note(self.present_time, 0, event, self.current_context)
+                note = Note(self.present_time, 0, event, self.current_context.copy())
                 on_notes[note.pitch] = note
                 timed_track.add_note(note)
                 self.channel = event.channel
@@ -101,13 +99,14 @@ class GlobalMetaContexts(list):
         super(GlobalMetaContexts, self).__init__()
 
     def add(self, time, event):
-        current_context = self.get_last_if_exists()
-        current_context.update_from_event(event)
-        current_context.time = time
-        self.append(current_context)
+        if MidiUtils.is_music_control_event(event):
+            current_context = self.get_last_if_exists()
+            current_context.update_from_event(event)
+            current_context.time = time
+            self.append(current_context)
 
     def get_last_if_exists(self):
-        last_index = len(self) - 2
+        last_index = len(self) - 1
         context = MetaContext()
         if last_index >= 0:
             previous_context = self[last_index]

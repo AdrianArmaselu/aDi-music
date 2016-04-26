@@ -1,6 +1,5 @@
 from collections import OrderedDict
 import midi
-import treemap as treemap
 
 from graphmodel.utils import MidiUtils
 
@@ -13,7 +12,8 @@ __author__ = 'Adisor'
 # logger.setLevel(logging.INFO)
 # # logger.warning('Protocol problem: %s', 'connection reset')
 # logger.info('Lala: %s', 'asd')
-pattern = midi.read_midifile("../music/bach.mid")
+# pattern = midi.read_midifile("../music/bach.mid")
+pattern = midi.read_midifile("../music/cosifn2t.mid")
 # pattern = midi.read_midifile("../music/Eminem/thewayiam.mid")
 print pattern
 MidiUtils.delete_tracks(pattern, 1, 3)
