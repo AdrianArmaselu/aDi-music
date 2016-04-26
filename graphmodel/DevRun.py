@@ -52,8 +52,8 @@ def run_multi_channel(transcript):
 
 # define properties
 # midi_file = "music/Eminem/thewayiam.mid"
-# midi_file = "music/mary.mid"
-midi_file = "music/bach.mid"
+midi_file = "music/mary.mid"
+# midi_file = "music/bach.mid"
 num_sound_events = 2
 policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
                                            FrameSelectionPolicy.RANDOM,

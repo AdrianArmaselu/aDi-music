@@ -2,17 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fea2916a-17dd-4242-a5c7-321745761cc3" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/graphmodel/utils/Maps.py" />
-      <change type="DELETED" beforePath="C:\Users\Adisor\PycharmProjects\cs4375-apt3338-da-vinci-sebastian-renaissance-vivien\graphmodel\utils\BST.py" afterPath="" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/graphmodel/DevRun.py" afterPath="$PROJECT_DIR$/graphmodel/DevRun.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/graphmodel/Generator.py" afterPath="$PROJECT_DIR$/graphmodel/Generator.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/graphmodel/model/Meta.py" afterPath="$PROJECT_DIR$/graphmodel/model/Meta.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/graphmodel/NGram.py" afterPath="$PROJECT_DIR$/graphmodel/NGram.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/graphmodel/io/Reader.py" afterPath="$PROJECT_DIR$/graphmodel/io/Reader.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/graphmodel/model/Song.py" afterPath="$PROJECT_DIR$/graphmodel/model/Song.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/graphmodel/model/SongObjects.py" afterPath="$PROJECT_DIR$/graphmodel/model/SongObjects.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/graphmodel/test/Tests.py" afterPath="$PROJECT_DIR$/graphmodel/test/Tests.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/graphmodel/test/Tests2.py" afterPath="$PROJECT_DIR$/graphmodel/test/Tests2.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="cs4375-apt3338-da-vinci-sebastian-renaissance-vivien.iws" />
@@ -38,7 +30,7 @@
         <entry file="file://$PROJECT_DIR$/graphmodel/model/Song.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="108" column="0" selection-start-line="108" selection-start-column="0" selection-end-line="108" selection-end-column="0" />
+              <caret line="43" column="36" selection-start-line="43" selection-start-column="36" selection-end-line="43" selection-end-column="36" />
               <folding>
                 <element signature="e#0#48#0" expanded="true" />
               </folding>
@@ -50,7 +42,7 @@
         <entry file="file://$PROJECT_DIR$/graphmodel/Generator.py">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="48" column="61" selection-start-line="48" selection-start-column="61" selection-end-line="48" selection-end-column="61" />
+              <caret line="78" column="54" selection-start-line="78" selection-start-column="54" selection-end-line="78" selection-end-column="54" />
               <folding>
                 <element signature="e#0#14#0" expanded="true" />
               </folding>
@@ -63,16 +55,6 @@
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
               <caret line="5" column="53" selection-start-line="5" selection-start-column="53" selection-end-line="5" selection-end-column="53" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Tests.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/graphmodel/test/Tests.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="39" column="25" selection-start-line="39" selection-start-column="25" selection-end-line="40" selection-end-column="19" />
               <folding />
             </state>
           </provider>
@@ -123,11 +105,21 @@
       <file leaf-file-name="Reader.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/graphmodel/io/Reader.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-5.862069">
-              <caret line="10" column="29" selection-start-line="10" selection-start-column="29" selection-end-line="10" selection-end-column="29" />
+            <state vertical-scroll-proportion="-6.448276">
+              <caret line="44" column="64" selection-start-line="44" selection-start-column="64" selection-end-line="44" selection-end-column="64" />
               <folding>
-                <element signature="e#0#11#0" expanded="true" />
+                <element signature="e#0#35#0" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="log.text" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/graphmodel/log.text">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="548" column="55" selection-start-line="548" selection-start-column="55" selection-end-line="548" selection-end-column="55" />
+              <folding />
             </state>
           </provider>
         </entry>
@@ -135,8 +127,8 @@
       <file leaf-file-name="DevRun.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/graphmodel/DevRun.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.654661">
-              <caret line="70" column="45" selection-start-line="70" selection-start-column="45" selection-end-line="70" selection-end-column="45" />
+            <state vertical-scroll-proportion="0.37066665">
+              <caret line="51" column="0" selection-start-line="51" selection-start-column="0" selection-end-line="51" selection-end-column="0" />
               <folding>
                 <element signature="e#0#14#0" expanded="true" />
               </folding>
@@ -190,6 +182,7 @@
         <option value="$PROJECT_DIR$/graphmodel/Generator.py" />
         <option value="$PROJECT_DIR$/graphmodel/NGram.py" />
         <option value="$PROJECT_DIR$/graphmodel/io/Converter.py" />
+        <option value="$PROJECT_DIR$/graphmodel/log.text" />
         <option value="$PROJECT_DIR$/graphmodel/model/Song.py" />
         <option value="$PROJECT_DIR$/graphmodel/io/Reader.py" />
         <option value="$PROJECT_DIR$/graphmodel/DevRun.py" />
@@ -703,7 +696,13 @@
       <option name="project" value="LOCAL" />
       <updated>1461520775962</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="The Reader correctly merges tracks with same channel and updates note pauses.">
+      <created>1461618479668</created>
+      <option name="number" value="00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1461618479668</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -711,12 +710,12 @@
     <editor active="true" />
     <layout>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32885906" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32885906" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32899022" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.2872483" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.62550336" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.4590604" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32885906" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.19250317" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.31903484" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -779,19 +778,11 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="18" />
+      <option name="time" value="26" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/graphmodel/Generator.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="120" column="0" selection-start-line="120" selection-start-column="0" selection-end-line="120" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/graphmodel/model/SongObjects.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -814,6 +805,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="165" column="4" selection-start-line="165" selection-start-column="4" selection-end-line="165" selection-end-column="4" />
+          <folding>
+            <element signature="e#0#23#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -830,7 +824,7 @@
         <state vertical-scroll-proportion="0.0">
           <caret line="60" column="35" selection-start-line="60" selection-start-column="35" selection-end-line="60" selection-end-column="35" />
           <folding>
-            <element signature="e#0#11#0" expanded="true" />
+            <element signature="e#0#35#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1020,6 +1014,9 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="165" column="4" selection-start-line="165" selection-start-column="4" selection-end-line="165" selection-end-column="4" />
+          <folding>
+            <element signature="e#0#23#0" expanded="false" />
+          </folding>
         </state>
       </provider>
     </entry>
@@ -1141,7 +1138,7 @@
     <entry file="file://$PROJECT_DIR$/graphmodel/Generator.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="48" column="61" selection-start-line="48" selection-start-column="61" selection-end-line="48" selection-end-column="61" />
+          <caret line="78" column="54" selection-start-line="78" selection-start-column="54" selection-end-line="78" selection-end-column="54" />
           <folding>
             <element signature="e#0#14#0" expanded="true" />
           </folding>
@@ -1164,30 +1161,38 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/graphmodel/io/Reader.py">
+    <entry file="file://$PROJECT_DIR$/graphmodel/log.text">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-5.862069">
-          <caret line="10" column="29" selection-start-line="10" selection-start-column="29" selection-end-line="10" selection-end-column="29" />
-          <folding>
-            <element signature="e#0#11#0" expanded="true" />
-          </folding>
+        <state vertical-scroll-proportion="0.0">
+          <caret line="548" column="55" selection-start-line="548" selection-start-column="55" selection-end-line="548" selection-end-column="55" />
+          <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/graphmodel/model/Song.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="108" column="0" selection-start-line="108" selection-start-column="0" selection-end-line="108" selection-end-column="0" />
+          <caret line="43" column="36" selection-start-line="43" selection-start-column="36" selection-end-line="43" selection-end-column="36" />
           <folding>
             <element signature="e#0#48#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/graphmodel/io/Reader.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-6.448276">
+          <caret line="44" column="64" selection-start-line="44" selection-start-column="64" selection-end-line="44" selection-end-column="64" />
+          <folding>
+            <element signature="e#0#35#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/graphmodel/DevRun.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.654661">
-          <caret line="70" column="45" selection-start-line="70" selection-start-column="45" selection-end-line="70" selection-end-column="45" />
+        <state vertical-scroll-proportion="0.37066665">
+          <caret line="51" column="0" selection-start-line="51" selection-start-column="0" selection-end-line="51" selection-end-column="0" />
           <folding>
             <element signature="e#0#14#0" expanded="true" />
           </folding>

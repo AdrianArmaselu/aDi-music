@@ -1,3 +1,4 @@
+from collections import defaultdict
 import midi
 
 from graphmodel.utils import MidiUtils
@@ -17,8 +18,9 @@ def get_transcript(midifile):
 class TranscriptLoader:
     def __init__(self, midifile):
         self.pattern = midi.read_midifile(midifile)
-        self.context_tracker = ContextTracker()
+        self.track_loader = None
         self.transcript = MusicTranscript()
+        self.instrument_channel = {}
 
     def load(self):
         self.load_context()
@@ -26,51 +28,72 @@ class TranscriptLoader:
             self.load_track(self.pattern[track_index])
 
     def load_context(self):
+        context_tracker = ContextTracker()
         contexts = GlobalMetaContexts()
         time = 0
         for event in self.pattern[0]:
             time += event.tick
             contexts.add(time, event)
-        self.context_tracker.set_contexts(contexts)
+        context_tracker.set_contexts(contexts)
+        self.track_loader = TrackLoader(context_tracker)
 
     def load_track(self, track):
-        track_loader = TrackLoader(self.context_tracker, self.transcript)
-        track_loader.load_track(track)
-        self.context_tracker.reset()
+        timed_track = self.track_loader.load_track(track)
+        # check if the track actually has notes
+        if len(timed_track):
+            channel = self.track_loader.channel
+            instrument = self.track_loader.program_change_event.data[0]
+            # check if instrument already has a channel and place track in the same channel
+            if instrument in self.instrument_channel:
+                channel = self.instrument_channel[instrument]
+            if instrument not in self.instrument_channel:
+                self.instrument_channel[instrument] = channel
+            self.transcript.add_track(channel, timed_track)
+        self.track_loader.reset()
 
 
 class TrackLoader:
-    def __init__(self, context_tracker, transcript):
+    def __init__(self, context_tracker):
         self.context_tracker = context_tracker
-        self.transcript = transcript
         self.present_time = 0
         self.current_context = MetaContext()
-        self.on_notes = {}
+        self.channel = 0
+        self.program_change_event = None
 
-    # TODO: SET CHANEL ONCE
+    # TODO: SET CHANnEL ONCE
     def load_track(self, track):
+        on_notes = {}
         timed_track = SoundEventsTimedTrack()
-        channel = 0
         for event_index in range(0, len(track), 1):
             event = track[event_index]
             self.present_time += event.tick
             self.update_context(event)
+            if MidiUtils.is_program_change_event(event):
+                self.program_change_event = event
             if MidiUtils.is_new_note(event):
                 note = Note(self.present_time, 0, event, self.current_context)
-                self.on_notes[note.pitch] = note
+                on_notes[note.pitch] = note
                 timed_track.add_note(note)
-                channel = event.channel
+                self.channel = event.channel
             if MidiUtils.has_note_ended(event):
-                note = self.on_notes[event.pitch]
+                note = on_notes[event.pitch]
                 note.duration = self.present_time - note.time
-        if len(timed_track) != 0:
-            self.transcript.add_track(channel, timed_track)
+        return timed_track
 
     def update_context(self, event):
         global_context = self.context_tracker.get_context_at_time(self.present_time)
         self.current_context.update_from_context(global_context)
         if MidiUtils.is_music_control_event(event):
             self.current_context.update_from_event(event)
+
+    def get_instrument(self):
+        return self.program_change_event.data[0]
+
+    def reset(self):
+        self.present_time = 0
+        self.current_context = MetaContext()
+        self.channel = 0
+        self.program_change_event = None
 
 
 class GlobalMetaContexts(list):

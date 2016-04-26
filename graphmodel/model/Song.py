@@ -21,39 +21,40 @@ class MusicTranscript(object):
         if self.tracks[channel] is None:
             self.set_track(channel, track)
         else:
+            final_track = SoundEventsTimedTrack()
             param_times = track.times()
             param_index = 0
-            param_time = param_times[param_index]
-
             times = self.tracks[channel].times()
             index = 0
-            time = times[index]
-
-            final_track = SoundEventsTimedTrack()
             # merge both tracks into one track and respect times
-            while param_index < len(param_times) - 1 or index < len(times) - 1:
+            while param_index < len(param_times) or index < len(times):
+                if param_index < len(param_times):
+                    param_time = param_times[param_index]
+                if index < len(times):
+                    time = times[index]
                 # merge from param track
-                if param_time < time and param_index < len(param_times) - 1:
-                    final_track.add_sound_event(track.get_sound_event(param_time))
+                can_add = (param_time < time or (param_time > time and index == len(times)))
+                if param_index < len(param_times) and can_add:
+                    self.add_notes_to_track(track, final_track, param_time)
                     param_index += 1
-
                 # merge from both tracks
                 if param_time == time:
-                    final_sound_event = SoundEvent()
-                    for note in track.get_sound_event(param_time).get_notes():
-                        final_sound_event.add_note(note)
-                    for note in self.tracks[channel].get_sound_event(time).get_notes():
-                        final_sound_event.add_note(note)
-                    final_track.add_sound_event(final_sound_event)
+                    self.add_notes_to_track(track, final_track, param_time)
+                    self.add_notes_to_track(self.tracks[channel], final_track, time)
                     param_index += 1
-
-                # merge from self track
-                if param_time > time and index < len(times) - 1:
-                    final_track.add_sound_event(self.tracks[channel].get_sound_event(time))
                     index += 1
-                param_time = param_times[param_index]
-                time = times[index]
+                # merge from self track
+                can_add = (param_time > time or (param_time < time and param_index == len(param_times)))
+                if index < len(times) and can_add:
+                    self.add_notes_to_track(self.tracks[channel], final_track, time)
+                    index += 1
+
             self.set_track(channel, final_track)
+
+    @staticmethod
+    def add_notes_to_track(from_track, to_track, time):
+        for note in from_track.get_sound_event(time).get_notes():
+            to_track.add_note(note)
 
     def get_sound_events(self, channel):
         return self.tracks[channel].get_sound_events()
@@ -85,6 +86,7 @@ class SoundEventsTimedTrack:
     THIS CLASS DOES NOT MAINTAIN SORTED TIMES, BUT ONLY REMEMBERS INSERTION ORDER
     IF YOU WANT THE ELEMENTS TO BE SORTED BY TIME, INSERT THE SOUND EVENTS BY TIME
     """
+
     def __init__(self):
         self.previous_time = 0
         self.current_time = 0
