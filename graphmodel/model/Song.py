@@ -8,26 +8,19 @@ __author__ = 'Adisor'
 
 # TODO: MERGE SOUND EVENTS WITH DIFFERENT INSTRUMENTS INTO ONE SOUND EVENT
 
-class MusicTranscript(object):
+class SongTranscript(object):
     """
     Used for storing simplified musical information from file in the form of sound events
 
     The class stores sound events into multiple tracks, where each track has a specific instrument
     """
 
-    def __init__(self, pattern=None):
+    def __init__(self, song_meta=None):
         self.tracks = defaultdict(lambda: None)
-        self.original_pattern = pattern
-        self.signature_events = self.load_signature_events()
+        self.song_meta = song_meta
 
-    def load_signature_events(self):
-        signature_events = SongSignatureEvents()
-        signature_events.key_signature_event = MidiUtils.get_key_signature_event(self.original_pattern)
-        signature_events.time_signature_event = MidiUtils.get_time_signature_event(self.original_pattern)
-        return signature_events
-
-    def set_pattern(self, pattern):
-        self.original_pattern = pattern
+    def get_song_meta(self):
+        return self.song_meta
 
     def set_track(self, channel, track):
         self.tracks[channel] = track
@@ -39,7 +32,7 @@ class MusicTranscript(object):
             self.merge_tracks(channel, track)
 
     def merge_tracks(self, channel, track):
-        final_track = SoundEventsTimedTrack(channel, track.get_program_change_event())
+        final_track = TranscriptTrack(channel, track.get_program_change_event())
         param_times = track.times()
         param_index = 0
         times = self.tracks[channel].times()
@@ -90,19 +83,26 @@ class MusicTranscript(object):
         return string
 
 
-class SongSignatureEvents:
-    def __init__(self):
+class SongMeta:
+    def __init__(self, pattern):
         self.key_signature_event = None
         self.time_signature_event = None
+        self.format = pattern.format
+        self.resolution = pattern.resolution
+        self.load_signature_events(pattern)
+
+    def load_signature_events(self, pattern):
+        self.key_signature_event = MidiUtils.get_key_signature_event(pattern)
+        self.time_signature_event = MidiUtils.get_time_signature_event(pattern)
 
 
-class SoundEventsTimedTrack(Track):
+class TranscriptTrack(Track):
     """
     THIS CLASS DOES NOT MAINTAIN SORTED TIMES, BUT ONLY REMEMBERS INSERTION ORDER
     IF YOU WANT THE ELEMENTS TO BE SORTED BY TIME, INSERT THE SOUND EVENTS BY TIME
     """
 
-    def __init__(self, channel=0, program_change_event = None):
+    def __init__(self, channel=0, program_change_event=None):
         Track.__init__(self)
         self.previous_time = 0
         self.current_time = 0

@@ -8,7 +8,7 @@ from graphmodel.io import Reader
 from graphmodel.model.Policies import FrameSelectionPolicy, PolicyConfiguration, ChannelMixingPolicy, \
     MetadataResolutionPolicy
 from graphmodel.io.Converter import to_midi_pattern
-from graphmodel.model.Song import MusicTranscript
+from graphmodel.model.Song import SongTranscript
 
 __author__ = 'Adisor'
 
@@ -22,13 +22,13 @@ class SingleChannelGenerator(object):
     This class generates music. Currently, it takes the sound event data from an ngram, but that can change
     """
 
-    def __init__(self, singlechannel_ngram, song_duration, policy_configuration):
+    def __init__(self, singlechannel_ngram, song_duration, policy_configuration, song_meta):
         self.ngram = singlechannel_ngram
         # measured in number of notes
         self.song_duration = song_duration
         self.policies = policy_configuration
         # TODO: GET THE FORMAT AND RESOLUTION FROM NGRAM TRANSCRIPT
-        self.transcript = MusicTranscript()
+        self.transcript = SongTranscript(song_meta)
 
     def generate(self, channel):
         """
@@ -127,12 +127,12 @@ class SimpleTrack:
 
 
 class MultiChannelGenerator:
-    def __init__(self, multichannel_ngram, song_duration, policy_configuration):
+    def __init__(self, multichannel_ngram, song_duration, policy_configuration, song_meta):
         self.multichannel_ngram = multichannel_ngram
         self.song_duration = song_duration
         self.policies = policy_configuration
         # Used for final output
-        self.transcript = MusicTranscript()
+        self.transcript = SongTranscript(song_meta)
 
     def generate(self):
         channels = self.multichannel_ngram.get_channels()
@@ -157,7 +157,8 @@ def generate(input_file, num_sound_events, folder='default'):
     in_transcript = Reader.load_transcript("%s/%s" % (folder, input_file))
     ngram = SingleChannelNGram(2)
     ngram.build_from_transcript(in_transcript)
-    generator = SingleChannelGenerator(ngram, num_sound_events, policy_configuration)
+    song_meta = in_transcript.get_song_meta()
+    generator = SingleChannelGenerator(ngram, num_sound_events, policy_configuration, song_meta)
     generator.generate(0)
     pattern = to_midi_pattern(generator.transcript)
     name = input_file.split('.')[0]

@@ -3,7 +3,7 @@ import sys
 
 from graphmodel.utils import MidiUtils
 from graphmodel.model.Meta import NoteMetaContext
-from graphmodel.model.Song import MusicTranscript, SoundEventsTimedTrack
+from graphmodel.model.Song import SongTranscript, TranscriptTrack, SongMeta
 from graphmodel.model.SongObjects import Note
 
 __author__ = 'Adisor'
@@ -38,8 +38,10 @@ class TranscriptLoader:
     def __init__(self, midifile):
         # Get the data from the midi file
         self.pattern = midi.read_midifile(midifile)
+        # loads and converts data from the midi file into notes
         self.track_loader = None
-        self.transcript = MusicTranscript(self.pattern)
+        # creates a transcript with the song meta information
+        self.transcript = SongTranscript(SongMeta(self.pattern))
         # Used to map instruments to channels
         self.instrument_channel = {}
 
@@ -101,7 +103,7 @@ class TrackLoader:
         # Keeps track of notes whose duration has not been computed
         self.on_notes = {}
         # Used for storing notes converted from file data
-        self.notes_track = SoundEventsTimedTrack()
+        self.notes_track = TranscriptTrack()
 
     def load_track(self, track):
         """
@@ -151,14 +153,11 @@ class TrackLoader:
         if MidiUtils.is_music_control_event(event):
             self.current_context.update_from_event(event)
 
-    def get_instrument(self):
-        return self.program_change_event.data[0]
-
     def reset(self):
         self.present_time = 0
         self.current_context = NoteMetaContext()
         self.on_notes = {}
-        self.notes_track = SoundEventsTimedTrack()
+        self.notes_track = TranscriptTrack()
 
 
 class GlobalMetaContexts(list):

@@ -29,7 +29,7 @@ def run_single_channel(transcript):
     logger.info("Created NGram")
 
     # construct the generator and generate a sequence of sound events
-    generator = SingleChannelGenerator(ngram, num_sound_events, policy_configuration)
+    generator = SingleChannelGenerator(ngram, num_sound_events, policy_configuration, transcript.get_song_meta())
     generator.generate(0)
     logger.info("Generated Transcript")
     return generator.transcript
@@ -42,7 +42,7 @@ def run_multi_channel(transcript):
     logger.info("Created NGram")
 
     # construct the generator and generate a sequence of sound events
-    generator = MultiChannelGenerator(ngram, num_sound_events, policy_configuration)
+    generator = MultiChannelGenerator(ngram, num_sound_events, policy_configuration, transcript.get_song_meta())
     generator.generate()
     logger.info("Generated Transcript")
 

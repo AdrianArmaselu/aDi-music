@@ -3,41 +3,6 @@ import midi
 
 __author__ = 'Adisor'
 
-"""
-Class For utility Methods
-
-ProgramChangeEvent: data - size 1, 1 byte
-
-SetTempoEvent: data - size 3, 1 byte each
-
-KeySignatureEvent: data - size 2, 1 byte each;
-first byte number of sharps or flats
--7 = 7 flats
-0 = key of C
-+7 = 7 sharps
-second byte
-0 = major key
-1 = minor key
-
-TimeSignatureEvent: data - size 4, 1 byte each
-
-Style Elements:
-Tempo, Time Signature, Key Signature, Program Change(maybe), ControlChange(maybe)
-
-Track Specific: PortEvent, ProgramChan geEvent, ControlChangeEvent - should be in each track (always)
-Global: TempoEvent, KeySignatureEvent, TimeSignatureEvent - should be in first track (always)
-"""
-track_meta_events = [events.ControlChangeEvent, events.ProgramChangeEvent]
-global_meta_events = [events.TimeSignatureEvent, events.SetTempoEvent, events.KeySignatureEvent]
-music_control_events = track_meta_events + global_meta_events
-processed_events = music_control_events + [events.NoteOnEvent, events.NoteOffEvent]
-"""
-Consider: Polyphonic Aftertouch, Channel Aftertouch - how much a key is pressed more - for now we can ignore
-Port Events can be ignored
-Control Change and aftertouch - modulation and pitch bend
-check MIT music21
-"""
-
 
 def is_channel_event(event):
     """
@@ -45,31 +10,6 @@ def is_channel_event(event):
     :return: boolean
     """
     return isinstance(event, events.Event)
-
-
-def is_global_meta_event(event):
-    """
-    :param event: Midi event
-    :return: boolean
-    """
-    return get_event_type(event) in global_meta_events
-
-
-def is_track_meta_event(event):
-    """
-    :param event: Midi event
-    :return: boolean
-    """
-    return get_event_type(event) in track_meta_events
-
-
-def is_event_processed(event):
-    """
-    :param event: Midi Event
-    :return: boolean
-    """
-    return isinstance(event, events.MetaEventWithText) or get_event_type(event) in processed_events or \
-           isinstance(event, events.EndOfTrackEvent)
 
 
 def get_event_type(event):
@@ -90,12 +30,13 @@ def is_meta_event(event):
 
 def is_music_control_event(event):
     """
-    Checks to see if the event is an event that sets music control - meaning tempo, key signature etc.
+    Checks to see if the event is an event that sets music control - meaning tempo, control change event
     :param event: Midi Event
     :return: boolean
     """
     event_type = get_event_type(event)
-    return event_type in music_control_events
+    return event_type in [events.ControlChangeEvent, events.SetTempoEvent, events.AfterTouchEvent,
+                          events.ChannelAfterTouchEvent, events.PitchWheelEvent, events.SysexEvent]
 
 
 def is_time_signature_event(event):
