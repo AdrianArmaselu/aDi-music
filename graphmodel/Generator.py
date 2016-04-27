@@ -13,19 +13,13 @@ from graphmodel.model.Song import MusicTranscript
 __author__ = 'Adisor'
 
 
-# TODO: GENERATE AND PLAY MULTIPLE CHANNELS
 # TODO: BREAK REPEATING LOOPS IN GENERATION
-# TODO: Add metadata resolution
-# TODO: test for trigrams, quadgrams, pentagrams, etc
 # TODO: OPTIMIZE NGRAM, CONVERTER (TAKES A LONG TIME FOR LARGE N FOR NGRAMS)
-# TODO: INSTEAD OF GENERATED_TRACK, HAVE MUSICAL TRANSCRIPT
 # TODO: USE SEED FOR RANDOM GENERATOR TO REPRODUCE
+# TODO: GENERATE NOTES INTO A SINGLE TRACK FOR SIMPLICITY IF IT IS WORTH IT
 class SingleChannelGenerator(object):
     """
     This class generates music. Currently, it takes the sound event data from an ngram, but that can change
-
-    IMPORTANT: REFRAIN FROM ACCESSING INTERNAL ATTRIBUTES OF NGRAM CLASS TO REDUCE COUPLING
-
     """
 
     def __init__(self, singlechannel_ngram, song_duration, policy_configuration):
@@ -33,6 +27,7 @@ class SingleChannelGenerator(object):
         # measured in number of notes
         self.song_duration = song_duration
         self.policies = policy_configuration
+        # TODO: GET THE FORMAT AND RESOLUTION FROM NGRAM TRANSCRIPT
         self.transcript = MusicTranscript()
 
     def generate(self, channel):
@@ -159,7 +154,7 @@ def generate(input_file, num_sound_events, folder='default'):
     policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
                                                 FrameSelectionPolicy.RANDOM,
                                                MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
-    in_transcript = Reader.get_transcript("%s/%s" % (folder, input_file))
+    in_transcript = Reader.load_transcript("%s/%s" % (folder, input_file))
     ngram = SingleChannelNGram(2)
     ngram.build_from_transcript(in_transcript)
     generator = SingleChannelGenerator(ngram, num_sound_events, policy_configuration)

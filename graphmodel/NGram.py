@@ -1,3 +1,4 @@
+from collections import defaultdict
 from random import randint
 import time
 
@@ -16,54 +17,39 @@ TODO: Methods for increasing distribution counts:
 # TODO: SOME FRAMES HAVE LONG DISTANCES BETWEEN NOTES
 # TODO: BUILD NGRAMS WITH PAUSES INCLUDED IN FRAMES, SEE WHAT HAPPENS
 # TODO: ADD A LIMIT TO THE SIZE OF THE NGRAM TO BE LESS THAN THE SIZE OF THE SONG ITSELF - MAYBE ADD A RATION
-# TODO: DEBUG THIS
 # TODO: SOME NOTES GO INTO LOWER VOLUME DURING PLAY
 # TODO: REGENERATING ON EACH CHANNEL DOES NOT YIELD A PLEASANT SOUND
 # TODO: TEMPO EVENTS MUST BE PLACED IN A SPECIFIC WAY OTHERWISE IT SOUNDS BAD
 # TODO: DO NOT KNOW IF THE NOTES ARE PLACED INTO CHANNELS APPROPRIATELY
+# TODO: SPREAD FRAMES ACROSS MULTIPLE INSTRUMENTS
 class SingleChannelNGram(object):
     """
-    Builds a distribution map that counts the number of unique frames in the song. Key is frame, value is count
+    This class builds a statistical model from an input transcript. The statistical model is used by the generator for
+    making music
+
+    The statistical model is build as follows:
+        The class counts the number of unique same sized consecutive sequences of sound events in a
+        transcript's track/channel. Each sequence's size is determined during object instantiation
     """
 
     def __init__(self, n):
         self.frame_size = n
-        self.frame_distribution = {}
-        # maps indexes to frames
-        self.indexed_frames = {}
-        # maps sound events to the index in frame_distribution where they start in a frame
-        self.sound_event_indexes = {}
+        self.frame_distribution = defaultdict(int)
+        self.indexer = FrameIndexer()
 
     def build_from_transcript(self, music_transcript):
-        for channel in music_transcript.get_channels():
-            self.build_from_track(music_transcript.track(channel))
+        for track in music_transcript.get_tracks():
+            self.build_from_track(track)
 
     def build_from_track(self, track):
         frames = OrderedFrames(self.frame_size)
-        self.build_frames(frames, track)
-
-    def build_frames(self, frames, track):
         for sound_event in track.get_sound_events():
             frames.add(sound_event)
-
             # update the count with the first frame
             if frames.is_first_frame_full():
                 frame = frames.remove_first()
-                if frame not in self.frame_distribution:
-                    self.frame_distribution[frame] = 0
                 self.frame_distribution[frame] += 1
-                self.index_frame(frame)
-
-    def index_frame(self, frame):
-        key = hash(frame)
-        self.indexed_frames[key] = frame
-        first_event = frame.first()
-        if first_event not in self.sound_event_indexes:
-            self.sound_event_indexes[first_event] = []
-        self.sound_event_indexes[first_event].append(key)
-
-    def has_index(self, sound_event):
-        return sound_event in self.sound_event_indexes
+                self.indexer.index_frame(frame)
 
     def get_first_frame(self):
         return self.frame_distribution.keys()[0]
@@ -71,24 +57,30 @@ class SingleChannelNGram(object):
     def get_frame_count(self, frame):
         return self.frame_distribution[frame]
 
-    def get_sound_event_indexes(self, sound_event):
-        return self.sound_event_indexes[sound_event]
-
-    def get_frame(self, index):
-        return self.frame_distribution.keys()[index]
-
     def get_random_frame(self):
         index = randint(0, len(self.frame_distribution) - 1)
         return self.frame_distribution.keys()[index]
 
-    def get_indexed_frame(self, index):
-        return self.indexed_frames[index]
+    def get_frames_that_start_with_sound_event(self, sound_event):
+        return self.indexer.get_frames_that_start_with_sound_event(sound_event)
 
     def __str__(self):
         string = "NGram:\n"
         for frame in self.frame_distribution:
             string += str(self.frame_distribution[frame]) + ": " + str(frame) + "\n"
         return string
+
+
+class FrameIndexer:
+    def __init__(self):
+        # maps frames to the sound events that are first in the frame
+        self.first_sound_event_frames = []
+
+    def index_frame(self, frame):
+        self.first_sound_event_frames[frame.first()].append(frame)
+
+    def get_frames_that_start_with_sound_event(self, sound_event):
+        return self.first_sound_event_frames[sound_event]
 
 
 class MultiChannelNGram:
@@ -101,7 +93,7 @@ class MultiChannelNGram:
         self.size = size
 
     def build_from_transcript(self, music_transcript):
-        for channel in music_transcript.get_channels():
+        for track in music_transcript.get_tracks():
             self.add_channel_track(channel, music_transcript.get_track(channel))
 
     def add_channel_track(self, channel, sound_events):

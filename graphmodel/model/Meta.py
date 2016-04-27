@@ -5,13 +5,15 @@ from graphmodel.utils import MidiUtils
 __author__ = 'Adisor'
 
 
-class MetaContext:
+
+
+class NoteMetaContext:
     def __init__(self):
         self.meta_events_dict = defaultdict(lambda: None)
         self.meta_events_dict[events.ControlChangeEvent] = ControlChangeEvents()
 
     def copy(self):
-        meta_context = MetaContext()
+        meta_context = NoteMetaContext()
         for event_type in self.meta_events_dict:
             meta_context.meta_events_dict[event_type] = self.meta_events_dict[event_type].copy()
         return meta_context

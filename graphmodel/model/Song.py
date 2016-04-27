@@ -1,19 +1,30 @@
 from collections import defaultdict, OrderedDict
 
-from graphmodel.model.SongObjects import SoundEvent
+from graphmodel.model.SongObjects import SoundEvent, Track
+from graphmodel.utils import MidiUtils
 
 __author__ = 'Adisor'
 
 
-# TODO: DIVERSIFY CHORDS OVER CHANNELS SEE WHAT HAPPENS
+# TODO: MERGE SOUND EVENTS WITH DIFFERENT INSTRUMENTS INTO ONE SOUND EVENT
+
 class MusicTranscript(object):
     """
-    Simple data structure for storing sound events on multiple tracks
+    Used for storing simplified musical information from file in the form of sound events
+
+    The class stores sound events into multiple tracks, where each track has a specific instrument
     """
 
     def __init__(self, pattern=None):
         self.tracks = defaultdict(lambda: None)
         self.original_pattern = pattern
+        self.signature_events = self.load_signature_events()
+
+    def load_signature_events(self):
+        signature_events = SongSignatureEvents()
+        signature_events.key_signature_event = MidiUtils.get_key_signature_event(self.original_pattern)
+        signature_events.time_signature_event = MidiUtils.get_time_signature_event(self.original_pattern)
+        return signature_events
 
     def set_pattern(self, pattern):
         self.original_pattern = pattern
@@ -28,7 +39,7 @@ class MusicTranscript(object):
             self.merge_tracks(channel, track)
 
     def merge_tracks(self, channel, track):
-        final_track = SoundEventsTimedTrack()
+        final_track = SoundEventsTimedTrack(channel, track.get_program_change_event())
         param_times = track.times()
         param_index = 0
         times = self.tracks[channel].times()
@@ -79,16 +90,40 @@ class MusicTranscript(object):
         return string
 
 
-class SoundEventsTimedTrack:
+class SongSignatureEvents:
+    def __init__(self):
+        self.key_signature_event = None
+        self.time_signature_event = None
+
+
+class SoundEventsTimedTrack(Track):
     """
     THIS CLASS DOES NOT MAINTAIN SORTED TIMES, BUT ONLY REMEMBERS INSERTION ORDER
     IF YOU WANT THE ELEMENTS TO BE SORTED BY TIME, INSERT THE SOUND EVENTS BY TIME
     """
 
-    def __init__(self):
+    def __init__(self, channel=0, program_change_event = None):
+        Track.__init__(self)
         self.previous_time = 0
         self.current_time = 0
+        self.channel = channel
+        self.program_change_event = program_change_event
         self._sound_events = OrderedDict()
+
+    def set_channel(self, channel):
+        self.channel = channel
+
+    def get_channel(self):
+        return self.channel
+
+    def get_instrument(self):
+        return self.program_change_event.data[0]
+
+    def get_program_change_event(self):
+        return self.program_change_event
+
+    def set_program_change_event(self, program_change_event):
+        self.program_change_event = program_change_event
 
     def get_sound_event(self, time):
         return self._sound_events[time]

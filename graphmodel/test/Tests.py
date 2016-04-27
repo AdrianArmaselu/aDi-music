@@ -16,14 +16,14 @@ __author__ = 'Adisor'
 pattern = midi.read_midifile("../music/cosifn2t.mid")
 # pattern = midi.read_midifile("../music/Eminem/thewayiam.mid")
 print pattern
-MidiUtils.delete_tracks(pattern, 1, 3)
-MidiUtils.delete_tracks(pattern, 3, len(pattern))
+# MidiUtils.delete_tracks(pattern, 1, 3)
+# MidiUtils.delete_tracks(pattern, 3, len(pattern))
 # Utils.delete_tracks(pattern, 1, 3)
 # Utils.change_program(pattern[1], [26])
 # Utils.convert_channel(pattern[1], 0)
 # Utils.change_key_signature(pattern[0], [0, 1])
 # # print pattern
-midi.write_midifile("test.mid", pattern)
+# midi.write_midifile("test.mid", pattern)
 
 
 #

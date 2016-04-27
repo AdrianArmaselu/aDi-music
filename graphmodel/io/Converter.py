@@ -3,7 +3,7 @@ from collections import OrderedDict
 import midi
 from midi import events
 from collections import defaultdict
-from graphmodel.model.Meta import MetaContext
+from graphmodel.model.Meta import NoteMetaContext
 
 from graphmodel.utils import MidiUtils
 
@@ -42,7 +42,7 @@ class TrackSchedule:
 
     def __init__(self, track):
         self.scheduled_events = defaultdict(lambda: [])
-        self.previous_context = MetaContext()
+        self.previous_context = NoteMetaContext()
         self.schedule_track(track)
 
     # TODO: add ticks to meta events but no ticks to the immediate next note

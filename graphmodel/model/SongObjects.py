@@ -1,6 +1,13 @@
 __author__ = 'Adisor'
 
 
+class Track:
+    def __init__(self):
+        self.channel = 0
+        self.program_change_event = None
+        self.port_change_event = None
+
+
 class SoundEvent(object):
     """
     If the size of the list is greater than 1 - this object symbolizes a chord

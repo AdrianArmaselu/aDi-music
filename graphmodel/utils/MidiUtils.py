@@ -27,7 +27,7 @@ Tempo, Time Signature, Key Signature, Program Change(maybe), ControlChange(maybe
 Track Specific: PortEvent, ProgramChan geEvent, ControlChangeEvent - should be in each track (always)
 Global: TempoEvent, KeySignatureEvent, TimeSignatureEvent - should be in first track (always)
 """
-track_meta_events = [events.ControlChangeEvent, events.PortEvent, events.ProgramChangeEvent]
+track_meta_events = [events.ControlChangeEvent, events.ProgramChangeEvent]
 global_meta_events = [events.TimeSignatureEvent, events.SetTempoEvent, events.KeySignatureEvent]
 music_control_events = track_meta_events + global_meta_events
 processed_events = music_control_events + [events.NoteOnEvent, events.NoteOffEvent]
@@ -96,10 +96,6 @@ def is_music_control_event(event):
     """
     event_type = get_event_type(event)
     return event_type in music_control_events
-    # is_event = isinstance(event, events.Event)
-    # is_not_note_event = not isinstance(event, events.NoteEvent)
-    # is_not_text_event = not isinstance(event, events.MetaEventWithText)
-    # return is_event and is_not_note_event and is_not_text_event
 
 
 def is_time_signature_event(event):
@@ -116,6 +112,14 @@ def is_set_tempo_event(event):
     :return: boolean
     """
     return isinstance(event, events.SetTempoEvent)
+
+
+def is_event_with_channel(event):
+    """
+    :param event: Midi Event
+    :return: boolean
+    """
+    return isinstance(event, events.Event)
 
 
 def is_key_signature_event(event):
@@ -232,3 +236,63 @@ def change_key_signature(track, data):
     for event in track:
         if is_key_signature_event(event):
             event.data = data
+
+
+def get_channel(track):
+    """
+    Returns the channel of the track
+    :param track: Midi track
+    :return: channel number
+    """
+    for event in track:
+        if is_event_with_channel(event):
+            return event.channel
+    return None
+
+
+def get_program_change_event(track):
+    """
+    Returns the event that specifies the instrument of the track
+    :param track:  Midi track
+    :return: instrument event
+    """
+    return loop_track_and_return_event_on_condition(track, is_program_change_event)
+
+
+def get_port_event(track):
+    """
+    Returns the port event of the track
+    :param track:
+    :return: port event
+    """
+    return loop_track_and_return_event_on_condition(track, is_port_event)
+
+
+def get_time_signature_event(pattern):
+    """
+    Returns the time signature of the entire musical piece
+    :param pattern: Midi pattern
+    :return: time signature event
+    """
+    return loop_track_and_return_event_on_condition(pattern[0], is_time_signature_event)
+
+
+def get_key_signature_event(pattern):
+    """
+    Returns the key signature event of the entire musical piece
+    :param pattern: Midi pattern
+    :return: key signature event
+    """
+    return loop_track_and_return_event_on_condition(pattern[0], is_key_signature_event)
+
+
+def loop_track_and_return_event_on_condition(track, condition):
+    """
+    :param track: Midi track
+    :param condition: boolean function
+    :return: Midi event
+    """
+    for event in track:
+        if condition(event):
+            return event
+    return None
