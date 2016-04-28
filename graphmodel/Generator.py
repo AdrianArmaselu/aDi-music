@@ -4,10 +4,10 @@ from random import randint
 import midi
 
 from NGram import SingleChannelNGram, Frame
-from graphmodel.io import Reader
+from graphmodel.io import loader
 from graphmodel.model.Policies import FrameSelectionPolicy, PolicyConfiguration, ChannelMixingPolicy, \
     MetadataResolutionPolicy
-from graphmodel.io.Converter import to_midi_pattern
+from graphmodel.io.converter import to_midi_pattern
 from graphmodel.model.Song import SongTranscript
 
 __author__ = 'Adisor'
@@ -139,7 +139,8 @@ class MultiChannelGenerator:
         for channel in channels:
             # TODO: SONG DURATION DOES NOT HAVE TO BE self.song_duration FOR THIS GENERATOR
             single_channel_generator = SingleChannelGenerator(self.multichannel_ngram.get_ngram(channel),
-                                                              self.song_duration, self.policies)
+                                                              self.song_duration, self.policies,
+                                                              self.transcript.get_song_meta())
             single_channel_generator.generate(channel)
             self.transcript.set_track(channel, single_channel_generator.transcript.get_track(channel))
 
@@ -154,7 +155,7 @@ def generate(input_file, num_sound_events, folder='default'):
     policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
                                                 FrameSelectionPolicy.RANDOM,
                                                MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
-    in_transcript = Reader.load_transcript("%s/%s" % (folder, input_file))
+    in_transcript = loader.load_transcript("%s/%s" % (folder, input_file))
     ngram = SingleChannelNGram(2)
     ngram.build_from_transcript(in_transcript)
     song_meta = in_transcript.get_song_meta()

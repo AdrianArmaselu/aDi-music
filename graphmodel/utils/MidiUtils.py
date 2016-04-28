@@ -237,3 +237,11 @@ def loop_track_and_return_event_on_condition(track, condition):
         if condition(event):
             return event
     return None
+
+
+def is_song_meta_event(event):
+    """
+    :param event: Midi event
+    :return: boolean
+    """
+    return isinstance(event, events.KeySignatureEvent) or isinstance(event, events.TimeSignatureEvent)

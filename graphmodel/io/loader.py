@@ -3,7 +3,7 @@ import sys
 
 from graphmodel.utils import MidiUtils
 from graphmodel.model.Meta import NoteMetaContext
-from graphmodel.model.Song import SongTranscript, TranscriptTrack, SongMeta
+from graphmodel.model.Song import SongTranscript, TranscriptTrack, SongMeta, TrackMetaContext
 from graphmodel.model.SongObjects import Note
 
 __author__ = 'Adisor'
@@ -39,32 +39,29 @@ class TranscriptLoader:
         # Get the data from the midi file
         self.pattern = midi.read_midifile(midifile)
         # loads and converts data from the midi file into notes
-        self.track_loader = None
+        self.track_loader = self.create_track_loader()
         # creates a transcript with the song meta information
         self.transcript = SongTranscript(SongMeta(self.pattern))
         # Used to map instruments to channels
         self.instrument_channel = {}
 
-    def load(self):
+    def create_track_loader(self):
         """
-        First load the context, then loop through each track and load the notes from the tracks
+        Loads the context from the first track and creates a track loader with it
         """
-        self.load_context()
-        for track_index in range(1, len(self.pattern), 1):
-            self.load_track(self.pattern[track_index])
-
-    def load_context(self):
-        """
-        Loads the context from the first track and places it into a context tracker object
-        """
-        context_tracker = ContextTracker()
-        contexts = GlobalMetaContexts()
+        contexts = NoteGlobalMetaContexts()
         time = 0
         for event in self.pattern[0]:
             time += event.tick
             contexts.add(time, event)
-        context_tracker.set_contexts(contexts)
-        self.track_loader = TrackLoader(context_tracker)
+        return TrackLoader(contexts)
+
+    def load(self):
+        """
+        First load the context, then loop through each track and load the notes from the tracks
+        """
+        for track_index in range(1, len(self.pattern), 1):
+            self.load_track(self.pattern[track_index])
 
     def load_track(self, track):
         """
@@ -76,8 +73,8 @@ class TranscriptLoader:
         timed_track = self.track_loader.load_track(track)
         # check if the track actually has notes then add it to the transcript
         if len(timed_track):
-            channel = timed_track.get_channel()
-            instrument = timed_track.get_instrument()
+            channel = timed_track.get_meta_context().get_channel()
+            instrument = timed_track.get_meta_context().get_instrument()
             # get the channel of the instrument if another track has already used it
             if instrument in self.instrument_channel:
                 channel = self.instrument_channel[instrument]
@@ -85,7 +82,6 @@ class TranscriptLoader:
             if instrument not in self.instrument_channel:
                 self.instrument_channel[instrument] = channel
             self.transcript.add_track(channel, timed_track)
-        self.track_loader.reset()
 
 
 class TrackLoader:
@@ -93,9 +89,9 @@ class TrackLoader:
     Loads the track data and converts it into sound events which are added into a timed track
     """
 
-    def __init__(self, context_tracker):
+    def __init__(self, note_global_contexts):
         # This object is used for updating the meta context for each new note that is created
-        self.context_tracker = context_tracker
+        self.context_tracker = ContextTracker(note_global_contexts)
         # Keeps track of the time after each event
         self.present_time = 0
         # Object represents the current meta context based on global context from the context tracker and track context
@@ -103,7 +99,7 @@ class TrackLoader:
         # Keeps track of notes whose duration has not been computed
         self.on_notes = {}
         # Used for storing notes converted from file data
-        self.notes_track = TranscriptTrack()
+        self.transcript_track = TranscriptTrack()
 
     def load_track(self, track):
         """
@@ -117,8 +113,8 @@ class TrackLoader:
             and keep track of it
         5. If the event is an end note event, then compute its duration
         """
-        self.notes_track.set_channel(MidiUtils.get_channel(track))
-        self.notes_track.set_program_change_event(MidiUtils.get_program_change_event(track))
+        self._reset()
+        self.transcript_track.set_meta_context(TrackMetaContext(track))
         for event_index in range(0, len(track), 1):
             event = track[event_index]
             self.present_time += event.tick
@@ -127,22 +123,7 @@ class TrackLoader:
                 self.add_new_note(event)
             if MidiUtils.has_note_ended(event):
                 self.compute_event_note_duration(event)
-        return self.notes_track
-
-    def add_new_note(self, event):
-        """
-        Creates a new note based on the event and adds it to the track
-        """
-        note = Note(self.present_time, 0, event, self.current_context.copy())
-        self.on_notes[note.pitch] = note
-        self.notes_track.add_note(note)
-
-    def compute_event_note_duration(self, event):
-        """
-        Computes the duration the note that just ended, which is indicated by the parameter event
-        """
-        note = self.on_notes[event.pitch]
-        note.duration = self.present_time - note.time
+        return self.transcript_track
 
     def update_context(self, event):
         """
@@ -153,20 +134,35 @@ class TrackLoader:
         if MidiUtils.is_music_control_event(event):
             self.current_context.update_from_event(event)
 
-    def reset(self):
+    def add_new_note(self, event):
+        """
+        Creates a new note based on the event and adds it to the track
+        """
+        note = Note(self.present_time, 0, event, self.current_context.copy())
+        self.on_notes[note.pitch] = note
+        self.transcript_track.add_note(note)
+
+    def compute_event_note_duration(self, event):
+        """
+        Computes the duration the note that just ended, which is indicated by the parameter event
+        """
+        note = self.on_notes[event.pitch]
+        note.duration = self.present_time - note.time
+
+    def _reset(self):
         self.present_time = 0
         self.current_context = NoteMetaContext()
         self.on_notes = {}
-        self.notes_track = TranscriptTrack()
+        self.transcript_track = TranscriptTrack()
 
 
-class GlobalMetaContexts(list):
+class NoteGlobalMetaContexts(list):
     """
-    Used for storing data about the global meta events in the midi file
+    Used for storing data about the song meta events in the midi file
     """
 
     def __init__(self):
-        super(GlobalMetaContexts, self).__init__()
+        super(NoteGlobalMetaContexts, self).__init__()
 
     def add(self, time, event):
         """
@@ -198,8 +194,8 @@ class ContextTracker:
     The class maintains an index that points to the most current context object
     """
 
-    def __init__(self):
-        self.contexts = []
+    def __init__(self, note_meta_contexts):
+        self.contexts = note_meta_contexts
         self.current_index = 0
         self.current = None
 
@@ -245,14 +241,11 @@ class Analyzer:
                         print "TRACK HAS MULTIPLE CHANNELS"
                         if Analyzer.DO_EXIT:
                             sys.exit(-1)
-                if not MidiUtils.is_event_processed(event):
-                    print "EVENT NOT PROCESSED: ", event
-                    if Analyzer.DO_EXIT:
-                        sys.exit(-1)
+
         # global meta events should be in the first track
         for i in range(1, len(self.pattern), 1):
             for event in self.pattern[i]:
-                if MidiUtils.is_global_meta_event(event):
+                if MidiUtils.is_song_meta_event(event):
                     print "GLOBAL META EVENTS NEED TO BE IN THE FIRST TRACK", event
                     if Analyzer.DO_EXIT:
                         sys.exit(-1)

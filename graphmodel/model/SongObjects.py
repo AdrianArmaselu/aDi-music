@@ -1,15 +1,10 @@
 __author__ = 'Adisor'
 
 
-class Track:
-    def __init__(self):
-        self.channel = 0
-        self.program_change_event = None
-        self.port_change_event = None
-
-
 class SoundEvent(object):
     """
+    This class is used for storing notes that are played starting at the exact same time
+
     If the size of the list is greater than 1 - this object symbolizes a chord
     """
 
@@ -17,7 +12,7 @@ class SoundEvent(object):
         self.notes = []
         self.hash = None
 
-    def get_time(self):
+    def get_start_time(self):
         if len(self.notes) == 0:
             return 0
         return self.notes[0].time
@@ -26,15 +21,8 @@ class SoundEvent(object):
         self.notes.append(note)
         self.hash = None
 
-    def get_shortest_pause_to_next_note(self):
-        min_pause = self.notes[0].pause_to_next_note
-        for i in range(1, len(self.notes), 1):
-            if min_pause > self.notes[i].pause_to_next_note:
-                min_pause = self.notes[i].pause_to_next_note
-        return min_pause
-
-    def get_channel(self):
-        return self.notes[0].channel
+    def get_pause_to_next_note(self):
+        return self.notes[0].pause_to_next_note
 
     def first(self):
         return self.notes[0]
@@ -51,9 +39,16 @@ class SoundEvent(object):
             note.pause_to_previous_note = pause
 
     def __hash__(self):
+        """
+        Builds the hash first if it is null. The hash is built by creating a tuple of notes and using the builtin
+        hash function on the tuple
+
+        The tuple contains the notes in sorted order by duration because the tuple hashing function should not care
+        about the order of the notes
+        """
         if self.hash is None:
             notes_tuple = ()
-            for note in self.notes:
+            for note in sorted(self.notes, key=lambda key: self.notes[0].duration):
                 notes_tuple += (note,)
             self.hash = (hash(notes_tuple) << 4) | len(notes_tuple)
         return self.hash
@@ -70,13 +65,16 @@ class SoundEvent(object):
 
 class Note(object):
     """
-    The class that represents a musical note. Contains all the necessary data.
+    The class that represents a musical note.
+
+    The class contains a custom hash function to ensure its uniqueness.
+    A note is unique by its duration and pitch
     """
     SHOW_CONTEXT_INFO = False
 
-    def __init__(self, time, duration, event, meta_context=None):
-        # timestamp from original song - used purely for debugging purposes
-        self.time = time
+    def __init__(self, start_time, duration, event, meta_context=None):
+        # timestamp from original song - used purely for loading and debugging purposes
+        self.start_time = start_time
 
         # how long to play this note (not how many ticks until next note)
         self.duration = duration
@@ -88,17 +86,15 @@ class Note(object):
         self.pause_to_next_note = 0
         self.channel = event.channel
         self.pitch = event.pitch
-        self.velocity = event.velocity
+        self.volume = event.velocity
 
         self.meta_context = meta_context
         self.hash = None
 
-    # ticks | channel | pitch | velocity
-    # bytes: 12 | 5 | 7 | 8
+    # ticks | pitch
+    # bytes: 25 | 7
     def encode(self):
-        return (self.duration << 20) | (self.channel << 15) | (self.pitch << 8) | self.velocity
-        # return (self.ticks << 20) | (self.channel << 15) | (self.pitch << 8)
-        # return (self.ticks << 20) | (self.channel << 15)
+        return (self.duration << 7) | self.pitch
 
     def __hash__(self):
         if not self.hash:
@@ -106,7 +102,6 @@ class Note(object):
         return self.hash
 
     def __eq__(self, other):
-        # return self.__hash__() == other.__hash__ and abs(self.pitch - other.pitch) < 10
         return self.encode() == other.encode()
 
     def __str__(self):
@@ -114,18 +109,10 @@ class Note(object):
             "Note(timeline:%d, t:%d, "
             "dt-:%d, dt+:%d, "
             "ch:%d, pitch:%d, vol:%d" %
-            (self.time, self.duration,
+            (self.start_time, self.duration,
              self.pause_to_previous_note, self.pause_to_next_note,
-             self.channel, self.pitch, self.velocity))
+             self.channel, self.pitch, self.volume))
         if self.SHOW_CONTEXT_INFO:
             string += (" meta_context: %s" % self.meta_context)
         string += ")"
         return string
-
-
-def is_chord(sound_event):
-    return is_chord(sound_event.notes)
-
-
-def is_chord(notes):
-    return len(notes) > 0
