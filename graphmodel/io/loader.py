@@ -2,7 +2,7 @@ import midi
 import sys
 
 from graphmodel.utils import MidiUtils
-from graphmodel.model.Meta import NoteMetaContext
+from graphmodel.model.meta import NoteMetaContext
 from graphmodel.model.Song import SongTranscript, TranscriptTrack, SongMeta, TrackMetaContext
 from graphmodel.model.SongObjects import Note
 

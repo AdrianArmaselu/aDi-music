@@ -76,7 +76,7 @@ def is_control_change_event(event):
     :param event: Midi Event
     :return: boolean
     """
-    return isinstance(event, events.ControlChangeEvent)
+    return event.name == events.ControlChangeEvent.name
 
 
 def is_port_event(event):
@@ -245,3 +245,15 @@ def is_song_meta_event(event):
     :return: boolean
     """
     return isinstance(event, events.KeySignatureEvent) or isinstance(event, events.TimeSignatureEvent)
+
+
+def remove_control_change_events(pattern):
+    """
+    :param pattern: Midi pattern
+    :return: pattern without change events
+    """
+
+    for track in pattern:
+        for event in track:
+            if is_control_change_event(event):
+                event.data = [0, 0]

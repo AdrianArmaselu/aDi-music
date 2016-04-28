@@ -1,7 +1,7 @@
 import bisect
 from collections import defaultdict
 
-from graphmodel.model.SongObjects import SoundEvent
+from graphmodel.model.SongObjects import InstrumentSoundEvent
 
 __author__ = 'Adisor'
 
@@ -180,7 +180,7 @@ def test():
     def compare_func(value1, value2):
         return value1 - value2
 
-    treemap = BadTreeDict(int.__cmp__, SoundEvent)
+    treemap = BadTreeDict(int.__cmp__, InstrumentSoundEvent)
     treemap.put(10, 130)
     treemap.put(5, 1)
     treemap.put(20, 1)
@@ -196,11 +196,11 @@ def test():
 
 
 def test2():
-    treemap = BadTreeDict(int.__cmp__, SoundEvent)
-    treemap.put(0, SoundEvent())
-    treemap.put(256, SoundEvent())
-    treemap.put(512, SoundEvent())
-    treemap.put(768, SoundEvent())
+    treemap = BadTreeDict(int.__cmp__, InstrumentSoundEvent)
+    treemap.put(0, InstrumentSoundEvent())
+    treemap.put(256, InstrumentSoundEvent())
+    treemap.put(512, InstrumentSoundEvent())
+    treemap.put(768, InstrumentSoundEvent())
     print "smallest", treemap.get_key_lt(256)
     print "smallest", treemap.get_key_lt(512)
     print "smallest", treemap.get_key_lt(768)

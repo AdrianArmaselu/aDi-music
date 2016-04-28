@@ -1,6 +1,6 @@
 from collections import defaultdict, OrderedDict
 
-from graphmodel.model.SongObjects import SoundEvent, Track
+from graphmodel.model.SongObjects import InstrumentSoundEvent, Track
 from graphmodel.utils import MidiUtils
 
 __author__ = 'Adisor'
@@ -107,7 +107,7 @@ class SongMeta:
         self.time_signature_event = MidiUtils.get_time_signature_event(pattern)
 
 
-class TranscriptTrack():
+class TranscriptTrack:
     """
     This class stores note information in sorted order by time. Each note is stored into a sound event, and
     there are sound events that can have multiple notes, meaning the sound event is a chord
@@ -157,7 +157,7 @@ class TranscriptTrack():
         # get the current sound event, if it does not exist create a new one
         sound_event = self._sound_events.get(note.time)
         if sound_event is None:
-            self._sound_events[note.time] = SoundEvent()
+            self._sound_events[note.time] = InstrumentSoundEvent()
         sound_event = self._sound_events.get(note.time)
         sound_event.add_note(note)
 

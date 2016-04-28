@@ -5,9 +5,9 @@ import pygame
 
 from graphmodel.Generator import SingleChannelGenerator, MultiChannelGenerator
 from graphmodel.NGram import SingleChannelNGram, MultiChannelNGram
-from graphmodel.model.Policies import PolicyConfiguration, ChannelMixingPolicy, FrameSelectionPolicy, \
+from graphmodel.model.policies import PolicyConfiguration, ChannelMixingPolicy, FrameSelectionPolicy, \
     MetadataResolutionPolicy
-from graphmodel.io.converter import to_midi_pattern
+from graphmodel.io.Converter import to_midi_pattern
 from graphmodel.io.loader import TranscriptLoader
 from graphmodel.model.SongObjects import Note
 

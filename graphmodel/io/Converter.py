@@ -3,7 +3,7 @@ from collections import OrderedDict
 import midi
 from midi import events
 from collections import defaultdict
-from graphmodel.model.Meta import NoteMetaContext
+from graphmodel.model.meta import NoteMetaContext
 
 from graphmodel.utils import MidiUtils
 

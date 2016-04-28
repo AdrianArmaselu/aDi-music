@@ -5,9 +5,9 @@ import midi
 
 from NGram import SingleChannelNGram, Frame
 from graphmodel.io import loader
-from graphmodel.model.Policies import FrameSelectionPolicy, PolicyConfiguration, ChannelMixingPolicy, \
+from graphmodel.model.policies import FrameSelectionPolicy, PolicyConfiguration, ChannelMixingPolicy, \
     MetadataResolutionPolicy
-from graphmodel.io.converter import to_midi_pattern
+from graphmodel.io.Converter import to_midi_pattern
 from graphmodel.model.Song import SongTranscript
 
 __author__ = 'Adisor'
@@ -16,7 +16,6 @@ __author__ = 'Adisor'
 # TODO: BREAK REPEATING LOOPS IN GENERATION
 # TODO: OPTIMIZE NGRAM, CONVERTER (TAKES A LONG TIME FOR LARGE N FOR NGRAMS)
 # TODO: USE SEED FOR RANDOM GENERATOR TO REPRODUCE
-# TODO: GENERATE NOTES INTO A SINGLE TRACK FOR SIMPLICITY IF IT IS WORTH IT
 class SingleChannelGenerator(object):
     """
     This class generates music. Currently, it takes the sound event data from an ngram, but that can change
