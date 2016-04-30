@@ -200,6 +200,14 @@ def get_program_change_event(track):
     return loop_track_and_return_event_on_condition(track, is_program_change_event)
 
 
+def get_instrument(track):
+    """
+    :param track: Midi track
+    :return: instrument number
+    """
+    return get_program_change_event(track).data[0]
+
+
 def get_port_event(track):
     """
     Returns the port event of the track

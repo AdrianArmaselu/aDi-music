@@ -6,6 +6,39 @@ from graphmodel.utils import MidiUtils
 __author__ = 'Adisor'
 
 
+class MetaMap(object):
+    def __init__(self):
+        self.tempo_events = {}
+
+    def add(self, time, meta_event):
+        if MidiUtils.is_set_tempo_event(meta_event):
+            self.tempo_events[time] = meta_event
+
+    def to_iterator(self):
+        return MetaMapIterator(self)
+
+
+class MetaMapIterator(object):
+    def __init__(self, meta_map):
+        self.meta_map = meta_map
+        self.current_time_index = -1
+        self.current_time = None
+        self.current_meta = None
+
+    def get_current_time(self):
+        return self.current_time
+
+    def next_meta(self):
+        self.current_time_index += 1
+        self.current_time = self.meta_map.keys[self.current_time_index]
+        self.current_meta = self.meta_map[self.current_time]
+
+    def previous_meta(self):
+        self.current_time_index -= 1
+        self.current_time = self.meta_map.keys[self.current_time_index]
+        self.current_meta = self.meta_map[self.current_time]
+
+
 class SongTranscript(object):
     """
     Used for storing simplified musical information from file in the form of sound events
@@ -14,22 +47,19 @@ class SongTranscript(object):
     The class also holds meta information about the song, such as key signature and time signature
     """
 
-    def __init__(self, song_meta=None):
-        self.tracks = defaultdict(lambda: None)
-        self.song_meta = song_meta
-
-    def get_song_meta(self):
-        return self.song_meta
+    def __init__(self, meta_map=None):
+        self.meta_map = meta_map
+        self.instrument_tracks = defaultdict(lambda: None)
 
     def set_track(self, channel, track):
-        self.tracks[channel] = track
+        self.instrument_tracks[channel] = track
 
     def add_track(self, channel, track):
         """
         If there is no track on the channel, then the track notes are added to the channel, otherwise, the tracks
         are merged together
         """
-        if self.tracks[channel] is None:
+        if self.instrument_tracks[channel] is None:
             self.set_track(channel, track)
         else:
             self.merge_tracks(channel, track)
@@ -42,7 +72,7 @@ class SongTranscript(object):
         final_track = TranscriptTrack(track.get_meta_context())
         param_times = track.times()
         param_index = 0
-        times = self.tracks[channel].times()
+        times = self.instrument_tracks[channel].times()
         index = 0
         # merge both tracks into one track in order of time
         while param_index < len(param_times) or index < len(times):
@@ -58,13 +88,13 @@ class SongTranscript(object):
             # merge from both tracks
             if param_time == time:
                 self.add_notes_to_track(track, final_track, param_time)
-                self.add_notes_to_track(self.tracks[channel], final_track, time)
+                self.add_notes_to_track(self.instrument_tracks[channel], final_track, time)
                 param_index += 1
                 index += 1
             # merge from self track if time is smaller or the entire param track has been merged
             can_add = (param_time > time or (param_time < time and param_index == len(param_times)))
             if index < len(times) and can_add:
-                self.add_notes_to_track(self.tracks[channel], final_track, time)
+                self.add_notes_to_track(self.instrument_tracks[channel], final_track, time)
                 index += 1
 
         self.set_track(channel, final_track)
@@ -75,18 +105,18 @@ class SongTranscript(object):
             to_track.add_note(note)
 
     def get_channels(self):
-        return self.tracks.keys()
+        return self.instrument_tracks.keys()
 
     def get_track(self, channel):
-        return self.tracks[channel]
+        return self.instrument_tracks[channel]
 
     def get_tracks(self):
-        return self.tracks.values()
+        return self.instrument_tracks.values()
 
     def __str__(self):
         string = "MusicalTranscript:\n"
-        for channel in self.tracks:
-            string += str(self.tracks[channel])
+        for channel in self.instrument_tracks:
+            string += str(self.instrument_tracks[channel])
         return string
 
 
@@ -95,6 +125,7 @@ class SongMeta:
     Stores meta information about the midi song. The information is stored into events and midi pattern information
     which includes resolution and format
     """
+
     def __init__(self, pattern):
         self.key_signature_event = None
         self.time_signature_event = None
@@ -117,22 +148,13 @@ class TranscriptTrack:
     IF YOU WANT THE ELEMENTS TO BE SORTED BY TIME, INSERT THE SOUND EVENTS BY TIME
     """
 
-    def __init__(self, track_meta_context=None):
+    def __init__(self, instrument=0):
+        self.instrument = instrument
         # used for checking whether a new added note is part of a chord or not
         self.previous_time = 0
         self.current_time = 0
-
-        # keeps information about the track meta events
-        self.track_meta_context = track_meta_context
-
         # contains notes and is sorted by time
         self._sound_events = OrderedDict()
-
-    def set_meta_context(self, track_meta_context):
-        self.track_meta_context = track_meta_context
-
-    def get_meta_context(self):
-        return self.track_meta_context
 
     def get_sound_event(self, time):
         return self._sound_events[time]
@@ -183,24 +205,3 @@ class TranscriptTrack:
         for time in sorted(self._sound_events.keys()):
             string += str(self._sound_events.get(time)) + "\n"
         return string
-
-
-class TrackMetaContext:
-    """
-    This class stores track-specific information: channel and instrument
-
-    This class is immutable
-    """
-
-    def __init__(self, track):
-        self.channel = MidiUtils.get_channel(track)
-        self.program_change_event = MidiUtils.get_program_change_event(track)
-
-    def get_channel(self):
-        return self.channel
-
-    def get_program_change_event(self):
-        return self.program_change_event
-
-    def get_instrument(self):
-        return self.get_program_change_event()[0]

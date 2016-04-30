@@ -52,7 +52,7 @@ class TrackSchedule:
             for note in sound_event.get_notes():
                 self.schedule_note(note, start)
                 self.previous_context = note.meta_context
-            start += sound_event.get_shortest_pause_to_next_note()
+            start += sound_event.get_pause_to_next_note()
         self.scheduled_events = OrderedDict(sorted(self.scheduled_events.items(), key=lambda key: key[0]))
 
     def schedule_note(self, note, start):

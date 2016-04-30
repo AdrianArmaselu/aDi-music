@@ -5,8 +5,6 @@ from graphmodel.utils import MidiUtils
 __author__ = 'Adisor'
 
 
-
-
 class NoteMetaContext:
     def __init__(self):
         self.meta_events_dict = defaultdict(lambda: None)
