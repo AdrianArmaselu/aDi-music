@@ -111,21 +111,21 @@ def is_new_note(event):
     return isinstance(event, events.NoteOnEvent) and event.velocity > 0
 
 
-def note_on_event(note):
+def to_note_on_event(note, channel):
     """
     :param note: model Note
     :return: Midi Event
     """
-    return midi.NoteOnEvent(channel=note.channel, tick=0, pitch=note.pitch,
-                            velocity=note.velocity)
+    return midi.NoteOnEvent(channel=channel, tick=0, pitch=note.pitch,
+                            velocity=note.volume)
 
 
-def note_off_event(note):
+def to_note_off_event(note, channel):
     """
     :param note: model Note
     :return: Midi Event
     """
-    return midi.NoteOnEvent(channel=note.channel, tick=0, pitch=note.pitch,
+    return midi.NoteOnEvent(channel=channel, tick=0, pitch=note.pitch,
                             velocity=0)
 
 
@@ -205,7 +205,10 @@ def get_instrument(track):
     :param track: Midi track
     :return: instrument number
     """
-    return get_program_change_event(track).data[0]
+    program_change_event = get_program_change_event(track)
+    if program_change_event is None:
+        return None
+    return program_change_event.data[0]
 
 
 def get_port_event(track):
@@ -265,3 +268,65 @@ def remove_control_change_events(pattern):
         for event in track:
             if is_control_change_event(event):
                 event.data = [0, 0]
+
+
+def has_notes(track):
+    """
+    :param track: Midi track
+    :return: boolean
+    """
+    for event in track:
+        if is_new_note(event):
+            return True
+    return False
+
+
+def hash_event(event):
+    """
+    Hashes based on an event's data
+    :param event: Midi event
+    :return: hash number
+    """
+    string = ""
+    if isinstance(event, events.AbstractEvent):
+        for byte in event.data:
+            string += chr(byte)
+    return hash(string)
+
+
+def to_program_change_event(instrument):
+    """
+    :param instrument: instrument number
+    :return: Midi event
+    """
+    return events.ProgramChangeEvent(data=[instrument])
+
+
+def print_rhythmic_pattern(pattern):
+    """
+    :param pattern: Midi pattern
+    :return:
+    """
+    total_tempo = 0
+    total_change = 0
+    number_of_events = 0
+    previous_tempo = 0
+    for event in pattern[0]:
+        if is_set_tempo_event(event):
+            data = event.data
+            tempo = (data[0] << 16) | (data[1] << 8) | data[2]
+            print tempo, data, tempo - previous_tempo
+            total_change += tempo - previous_tempo
+            previous_tempo = tempo
+            total_tempo += tempo
+            number_of_events += 1
+    print "average tempo, change of tempo", total_tempo / number_of_events, total_change / number_of_events
+
+
+def are_tempo_events_same(tempo_event1, tempo_event2):
+    """
+    :param tempo_event1: Midi tempo event
+    :param tempo_event2: Midi tempo event
+    :return: boolean
+    """
+    return tempo_event1.data == tempo_event2.data

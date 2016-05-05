@@ -1,88 +1,61 @@
-import logging
+from os import listdir
+from graphmodel import Generator
+from graphmodel.NGram import MultiInstrumentNGram
 
-import midi
-import pygame
-
-from graphmodel.Generator import SingleChannelGenerator, MultiChannelGenerator
-from graphmodel.NGram import SingleChannelNGram, MultiChannelNGram
-from graphmodel.model.policies import PolicyConfiguration, ChannelMixingPolicy, FrameSelectionPolicy, \
-    MetadataResolutionPolicy
-from graphmodel.io.Converter import to_midi_pattern
-from graphmodel.io.loader import TranscriptLoader
-from graphmodel.model.SongObjects import Note
+from graphmodel.io import reader, applogger
+from graphmodel.io.scheduling import PatternSchedule
+from graphmodel.io.writer import MidiFileWriter
 
 __author__ = 'Adisor'
 
-Note.SHOW_CONTEXT_INFO = True
-FORMAT = '%(asctime)-12s %(message)s'
-logging.basicConfig(format=FORMAT)
-logger = logging.getLogger()
-# logger.setLevel(logging.WARN)
-logger.setLevel(logging.INFO)
-
-
-def run_single_channel(transcript):
-    # construct the ngram
-    ngram = SingleChannelNGram(2)
-    ngram.build_from_transcript(transcript)
-    # print ngram
-    logger.info("Created NGram")
-
-    # construct the generator and generate a sequence of sound events
-    generator = SingleChannelGenerator(ngram, num_sound_events, policy_configuration, transcript.get_song_meta())
-    generator.generate(0)
-    logger.info("Generated Transcript")
-    return generator.transcript
-
-
-def run_multi_channel(transcript):
-    # construct the ngram
-    ngram = MultiChannelNGram(2)
-    ngram.build_from_transcript(transcript)
-    logger.info("Created NGram")
-
-    # construct the generator and generate a sequence of sound events
-    generator = MultiChannelGenerator(ngram, num_sound_events, policy_configuration, transcript.get_song_meta())
-    generator.generate()
-    logger.info("Generated Transcript")
-
-    return generator.transcript
-
-
-# define properties
-midi_file = "music/Eminem/thewayiam.mid"
-# midi_file = "music/cosifn2t.mid"
-# midi_file = "music/mary.mid"
-# midi_file = "music/bach.mid"
-num_sound_events = 20
-policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
-                                           FrameSelectionPolicy.RANDOM,
-                                           MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
+logger = applogger.logger
+output_file = "../output/devrun.mid"
+# file3 = "music/Eminem/thewayiam.mid"
+# file3 = "music/cosifn2t.mid"
+file1 = "music/mary.mid"
+file2 = "music/bach.mid"
+# input_file = "music/autumnno1allegro.mid"
+ticks = 10000
+nsize = 20
 logger.info("Starting Application...")
-reader = TranscriptLoader(midi_file)
-reader.load()
-logger.info("Loaded data from file")
 
-in_transcript = reader.transcript
-# print reader.pattern
-print in_transcript
-transcript = run_multi_channel(in_transcript)
-# transcript = run_single_channel(in_transcript)
 
-pattern = to_midi_pattern(transcript)
-# pattern = to_midi_pattern(in_transcript)
-logger.info("Converted Transcript")
+def reproduce():
+    transcript = reader.load_transcript("music/Eminem/forgotaboutdre.mid")
+    ngram = MultiInstrumentNGram(nsize)
+    ngram.build_from_transcript(transcript)
+    scheduled_tracks = Generator.generate_multi_instrument_tracks(ngram, ticks)
+    return PatternSchedule(scheduled_tracks=scheduled_tracks, meta=transcript.get_transcript_meta())
 
-midi.write_midifile("../output/devrun.mid", pattern)
-logger.info("Saved to File")
 
-pattern = midi.read_midifile("../output/devrun.mid")
-logger.info(pattern)
+def remixing():
+    in_transcript = reader.load_transcript(file1)
+    in_transcript2 = reader.load_transcript(file2)
+    ngram = MultiInstrumentNGram(nsize)
+    ngram.build_from_transcript(in_transcript)
+    ngram.build_from_transcript(in_transcript2)
+    scheduled_tracks = Generator.generate_multi_instrument_tracks(ngram, ticks)
+    return PatternSchedule(scheduled_tracks=scheduled_tracks, meta=in_transcript.get_transcript_meta())
 
-# play the music
-pygame.init()
-pygame.mixer.music.load("../output/devrun.mid")
-pygame.mixer.music.play()
-#
-while pygame.mixer.music.get_busy():
-    pygame.time.wait(1000)
+
+def run_from_eminem_music():
+    files = listdir("music/Eminem")
+    ignored = ["music/Eminem/business.mid", "music/Eminem/forgotaboutdre.mid", "music/Eminem/purple pills.mid"]
+               # "music/Eminem/Under_The_Influence.mid"]
+    ngram = MultiInstrumentNGram(nsize)
+    last_transcript = None
+    for file in files:
+        path = "music/Eminem/" + file
+        if path not in ignored:
+            print path
+            transcript = reader.load_transcript(path)
+            ngram.build_from_transcript(transcript)
+            last_transcript = transcript
+    scheduled_tracks = Generator.generate_multi_instrument_tracks(ngram, ticks)
+    return PatternSchedule(scheduled_tracks=scheduled_tracks, meta=last_transcript.get_transcript_meta())
+
+
+# pattern_schedule = reproduce()
+pattern_schedule = run_from_eminem_music()
+MidiFileWriter(pattern_schedule).save_to_file(output_file)
+reader.play_music(output_file)

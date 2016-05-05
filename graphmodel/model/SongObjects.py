@@ -1,6 +1,4 @@
-from midi import events
 from graphmodel.model import instruments
-from graphmodel.utils import MidiUtils
 
 __author__ = 'Adisor'
 
@@ -56,7 +54,10 @@ class InstrumentSoundEvent(object):
         return self.__hash__() == other.__hash__()
 
     def __str__(self):
-        return '{}({})'.format(self.__class__.__name__, str(self._notes))
+        string = " "
+        for note in self._notes:
+            string += str(note)
+        return '{}(instr:{}{})'.format(self.__class__.__name__, self._instrument, string)
 
 
 class OrchestralSoundEvent(object):
@@ -124,5 +125,5 @@ class Note(object):
         return self.encoding() == other.encoding()
 
     def __str__(self):
-        args = (self.__class__.__name__, self.start_time, self.duration, self.pitch, self.volume, self._hash)
-        return '{}(s:{}, d:{}, pitch:{}, vol:{}, hash:{})'.format(args)
+        args = (self.__class__.__name__, self.start_time, self.duration, self.pitch, self.volume, self.__hash__())
+        return '{}(s:{}, d:{}, pitch:{}, vol:{}, hash:{})'.format(*args)

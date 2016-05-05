@@ -2,73 +2,53 @@ import logging
 from random import randint
 
 import midi
+from graphmodel.NGram import MultiInstrumentNGram
 
-from NGram import SingleChannelNGram, Frame
-from graphmodel.io import loader
-from graphmodel.model.policies import FrameSelectionPolicy, PolicyConfiguration, ChannelMixingPolicy, \
-    MetadataResolutionPolicy
-from graphmodel.io.Converter import to_midi_pattern
-from graphmodel.model.Song import SongTranscript
+from graphmodel.io import reader
+from graphmodel.io.scheduling import AbstractEventsScheduledTrack, NotesAndEventsScheduledTrack, PatternSchedule
+from graphmodel.io.writer import MidiFileWriter
+from graphmodel.model import Policies
+from graphmodel.model.Policies import FrameSelectionPolicy
 
 __author__ = 'Adisor'
 
 
 # TODO: BREAK REPEATING LOOPS IN GENERATION
-# TODO: OPTIMIZE NGRAM, CONVERTER (TAKES A LONG TIME FOR LARGE N FOR NGRAMS)
 # TODO: USE SEED FOR RANDOM GENERATOR TO REPRODUCE
-class SingleChannelGenerator(object):
+# TODO: DURATION IS NOT COMPUTED CORRECTLY
+class SingleInstrumentGenerator(object):
     """
     This class generates music. Currently, it takes the sound event data from an ngram, but that can change
     """
 
-    def __init__(self, singlechannel_ngram, song_duration, policy_configuration, song_meta):
-        self.ngram = singlechannel_ngram
-        # measured in number of notes
-        self.song_duration = song_duration
-        self.policies = policy_configuration
-        # TODO: GET THE FORMAT AND RESOLUTION FROM NGRAM TRANSCRIPT
-        self.transcript = SongTranscript(song_meta)
+    def __init__(self, ngram, duration, meta_track):
+        self.ngram = ngram
+        self.duration = duration
+        self.meta_track = meta_track
 
-    def generate(self, channel):
+    def generate(self, instrument, channel):
         """
-        Generates a track and adds it to the transcript on the specific channel
-        :return:
         """
-        generated_track = SimpleTrack()
-        # first frame
+        scheduler = TrackScheduler(meta_track=self.meta_track, instrument=instrument, channel=channel)
         frame = self.ngram.get_first_frame()
-        while len(generated_track) < self.song_duration:
-            for sound_event in frame.sound_events:
-                generated_track.add_sound_event(sound_event)
-            frame = self.next_frame(frame.last_sound_event())
+        while scheduler.get_duration() < self.duration:
+            scheduler.schedule_frame_components(frame.get_components()[1:])
+            frame = self.next_frame(frame.last())
             # we are only concerned about elements after the first one
-            frame = Frame(self.ngram.frame_size, frame.sound_events[1:])
-        self.transcript.set_track(channel, generated_track)
+        return scheduler.get_scheduled_track()
 
     # find the frame with the maximum count that starts with last_sound_event
-    def next_frame(self, last_sound_event):
-        next_frame = None
-        if self.policies.selection_policy is FrameSelectionPolicy.HIGHEST_COUNT:
-            next_frame = self.get_next_highest_count_frame(last_sound_event)
-        if self.policies.selection_policy is FrameSelectionPolicy.RANDOM:
-            next_frame = self.get_random_next_frame(last_sound_event)
-        if self.policies.selection_policy is FrameSelectionPolicy.PROB:
-            next_frame = self.get_prob_next_frame(last_sound_event)
-        return next_frame
+    def next_frame(self, last_frame_component):
+        if Policies.frame_selection_policy is FrameSelectionPolicy.HIGHEST_COUNT:
+            return self.get_next_highest_count_frame(last_frame_component)
+        if Policies.frame_selection_policy is FrameSelectionPolicy.RANDOM:
+            pass
+        if Policies.frame_selection_policy is FrameSelectionPolicy.PROB:
+            return self.get_prob_next_frame(last_frame_component)
+        return None
 
     def get_next_highest_count_frame(self, last_sound_event):
-        next_frame = None
-        max_count = 0
-        if not self.ngram.has_index(last_sound_event):
-            return self.ngram.get_random_frame()
-        indexes = self.ngram.get_sound_event_indexes(last_sound_event)
-        for index in indexes:
-            frame = self.ngram.get_indexed_frame(index)
-            count = self.ngram.get_frame_count(frame)
-            if frame.first() == last_sound_event and (count > max_count):
-                max_count = count
-                next_frame = frame
-        # this means we reached the end of the samples, pick a random next frame
+        next_frame = self.ngram.get_next_best_frame(last_sound_event)
         if next_frame is None:
             next_frame = self.ngram.get_random_frame()
         return next_frame
@@ -99,67 +79,64 @@ class SingleChannelGenerator(object):
             next_frame = self.ngram.get_random_frame()
         return next_frame
 
-    def get_random_next_frame(self, last_sound_event):
-        # this may cause bugs because some sound events have no indexes
-        if self.ngram.has_index(last_sound_event):
-            indexes = self.ngram.get_sound_event_indexes(last_sound_event)
-            key = randint(0, len(indexes) - 1)
-            index = indexes[key]
-            frame = self.ngram.get_indexed_frame(index)
-        else:
-            frame = self.ngram.get_random_frame()
-        return frame
+
+# TODO: TEMPOS SHOULD BE UNIQUE AND CAN ONLY HAVE ONE AT A TIME NOT TWO( which happens when taking notes further in the track)
+class TrackScheduler(object):
+    def __init__(self, meta_track, instrument=0, channel=0):
+        self.meta_track = meta_track
+        self.time = 0
+        self.scheduled_track = NotesAndEventsScheduledTrack(instrument=instrument, channel=channel)
+
+    def schedule_frame_components(self, components):
+        for component in components:
+            sound_event = component.get_sound_event()
+            # add tempo and other events
+            for note in sound_event.get_notes():
+                self.scheduled_track.schedule_note(note, self.time)
+                self.meta_track.schedule_event(component.get_tempo_event(), self.time)
+            self.time += component.get_pause_to_next_component()
+
+    def get_duration(self):
+        return self.scheduled_track.get_duration()
+
+    def get_scheduled_track(self):
+        return self.scheduled_track
 
 
-class SimpleTrack:
-    def __init__(self):
-        self.sound_events = []
-
-    def add_sound_event(self, sound_event):
-        return self.sound_events.append(sound_event)
-
-    def get_sound_events(self):
-        return self.sound_events
-
-    def __len__(self):
-        return len(self.sound_events)
-
-
-class MultiChannelGenerator:
-    def __init__(self, multichannel_ngram, song_duration, policy_configuration, song_meta):
-        self.multichannel_ngram = multichannel_ngram
-        self.song_duration = song_duration
-        self.policies = policy_configuration
-        # Used for final output
-        self.transcript = SongTranscript(song_meta)
-
-    def generate(self):
-        channels = self.multichannel_ngram.get_channels()
-        for channel in channels:
-            # TODO: SONG DURATION DOES NOT HAVE TO BE self.song_duration FOR THIS GENERATOR
-            single_channel_generator = SingleChannelGenerator(self.multichannel_ngram.get_ngram(channel),
-                                                              self.song_duration, self.policies,
-                                                              self.transcript.get_song_meta())
-            single_channel_generator.generate(channel)
-            self.transcript.set_track(channel, single_channel_generator.transcript.get_track(channel))
+def generate_multi_instrument_tracks(multi_instrument_ngram, duration):
+    instruments = multi_instrument_ngram.get_instruments()
+    meta_track = AbstractEventsScheduledTrack()
+    # scheduled_tracks = [meta_track]
+    scheduled_tracks = []
+    channel = 0
+    for instrument in instruments:
+        ngram = multi_instrument_ngram.get_ngram(instrument)
+        single_instrument_generator = SingleInstrumentGenerator(meta_track=meta_track, ngram=ngram, duration=duration)
+        scheduled_track = single_instrument_generator.generate(instrument, channel)
+        scheduled_tracks.append(scheduled_track)
+        channel += 1
+    return scheduled_tracks
 
 
-FORMAT = '%(asctime)-12s %(message)s'
-logging.basicConfig(format=FORMAT)
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+"""
+THINGS TO ADD:
+SELECTING TEMPO AT EACH NOTE
+GENERATE FROM A COLLECTION OF SONGS
+USE DISTRIBUTED SOUND EVENT
+"""
 
 
-def generate(input_file, num_sound_events, folder='default'):
-    policy_configuration = PolicyConfiguration(ChannelMixingPolicy.MIX,
-                                                FrameSelectionPolicy.RANDOM,
-                                               MetadataResolutionPolicy.FIRST_SONG_RESOLUTION)
-    in_transcript = loader.load_transcript("%s/%s" % (folder, input_file))
-    ngram = SingleChannelNGram(2)
-    ngram.build_from_transcript(in_transcript)
-    song_meta = in_transcript.get_song_meta()
-    generator = SingleChannelGenerator(ngram, num_sound_events, policy_configuration, song_meta)
-    generator.generate(0)
-    pattern = to_midi_pattern(generator.transcript)
+def generate(input_file, ticks, folder='default'):
+    # properties that should be on the website:
+    nsize = 2
+    Policies.frame_selection_policy = FrameSelectionPolicy.HIGHEST_COUNT
+
+    # generation code
     name = input_file.split('.')[0]
-    midi.write_midifile("%s/output-%s.mid" % (folder, name), pattern)
+    output_file_name = "%s/output-%s.mid" % (folder, name)
+    in_transcript = reader.load_transcript("%s/%s" % (folder, input_file))
+    ngram = MultiInstrumentNGram(nsize)
+    ngram.build_from_transcript(in_transcript)
+    scheduled_tracks = generate_multi_instrument_tracks(ngram, ticks)
+    pattern_schedule = PatternSchedule(scheduled_tracks=scheduled_tracks, meta=in_transcript.get_transcript_meta())
+    MidiFileWriter(pattern_schedule).save_to_file(output_file_name)

@@ -1,44 +1,11 @@
 from collections import defaultdict, OrderedDict
 
-from graphmodel.model.SongObjects import InstrumentSoundEvent, Track
-from graphmodel.utils import MidiUtils
+from graphmodel.model.SongObjects import InstrumentSoundEvent
 
 __author__ = 'Adisor'
 
 
-class MetaMap(object):
-    def __init__(self):
-        self.tempo_events = {}
-
-    def add(self, time, meta_event):
-        if MidiUtils.is_set_tempo_event(meta_event):
-            self.tempo_events[time] = meta_event
-
-    def to_iterator(self):
-        return MetaMapIterator(self)
-
-
-class MetaMapIterator(object):
-    def __init__(self, meta_map):
-        self.meta_map = meta_map
-        self.current_time_index = -1
-        self.current_time = None
-        self.current_meta = None
-
-    def get_current_time(self):
-        return self.current_time
-
-    def next_meta(self):
-        self.current_time_index += 1
-        self.current_time = self.meta_map.keys[self.current_time_index]
-        self.current_meta = self.meta_map[self.current_time]
-
-    def previous_meta(self):
-        self.current_time_index -= 1
-        self.current_time = self.meta_map.keys[self.current_time_index]
-        self.current_meta = self.meta_map[self.current_time]
-
-
+# TODO: ADD OPTION TO LOAD NOTES BUT ON SEPARATE TRACKS
 class SongTranscript(object):
     """
     Used for storing simplified musical information from file in the form of sound events
@@ -47,32 +14,41 @@ class SongTranscript(object):
     The class also holds meta information about the song, such as key signature and time signature
     """
 
-    def __init__(self, meta_map=None):
-        self.meta_map = meta_map
+    def __init__(self, transcript_meta=None):
+        self._transcript_meta = transcript_meta
         self.instrument_tracks = defaultdict(lambda: None)
 
-    def set_track(self, channel, track):
-        self.instrument_tracks[channel] = track
+    def get_tempo_events(self):
+        return self.get_tempo_dict().values()
 
-    def add_track(self, channel, track):
+    def get_tempo_dict(self):
+        return self._transcript_meta.tempo_dict
+
+    def set_transcript_meta(self, transcript_meta):
+        self._transcript_meta = transcript_meta
+
+    def set_track(self, instrument, track):
+        self.instrument_tracks[instrument] = track
+
+    def add_track(self, instrument, track):
         """
         If there is no track on the channel, then the track notes are added to the channel, otherwise, the tracks
         are merged together
         """
-        if self.instrument_tracks[channel] is None:
-            self.set_track(channel, track)
+        if self.instrument_tracks[instrument] is None:
+            self.set_track(instrument, track)
         else:
-            self.merge_tracks(channel, track)
+            self.merge_tracks(instrument, track)
 
-    def merge_tracks(self, channel, track):
+    def merge_tracks(self, instrument, track):
         """
         Merges the track on the current channel with the parameter track
         The merge algorithm ensures the notes are in sorted order by time
         """
-        final_track = TranscriptTrack(track.get_meta_context())
+        final_track = InstrumentTrack()
         param_times = track.times()
         param_index = 0
-        times = self.instrument_tracks[channel].times()
+        times = self.instrument_tracks[instrument].times()
         index = 0
         # merge both tracks into one track in order of time
         while param_index < len(param_times) or index < len(times):
@@ -88,57 +64,42 @@ class SongTranscript(object):
             # merge from both tracks
             if param_time == time:
                 self.add_notes_to_track(track, final_track, param_time)
-                self.add_notes_to_track(self.instrument_tracks[channel], final_track, time)
+                self.add_notes_to_track(self.instrument_tracks[instrument], final_track, time)
                 param_index += 1
                 index += 1
             # merge from self track if time is smaller or the entire param track has been merged
             can_add = (param_time > time or (param_time < time and param_index == len(param_times)))
             if index < len(times) and can_add:
-                self.add_notes_to_track(self.instrument_tracks[channel], final_track, time)
+                self.add_notes_to_track(self.instrument_tracks[instrument], final_track, time)
                 index += 1
 
-        self.set_track(channel, final_track)
+        self.set_track(instrument, final_track)
 
     @staticmethod
     def add_notes_to_track(from_track, to_track, time):
         for note in from_track.get_sound_event(time).get_notes():
             to_track.add_note(note)
 
-    def get_channels(self):
+    def get_instruments(self):
         return self.instrument_tracks.keys()
 
-    def get_track(self, channel):
-        return self.instrument_tracks[channel]
+    def get_track(self, instrument):
+        return self.instrument_tracks[instrument]
 
     def get_tracks(self):
         return self.instrument_tracks.values()
 
+    def get_transcript_meta(self):
+        return self._transcript_meta
+
     def __str__(self):
         string = "MusicalTranscript:\n"
-        for channel in self.instrument_tracks:
-            string += str(self.instrument_tracks[channel])
+        for instrument in self.instrument_tracks:
+            string += str(self.instrument_tracks[instrument])
         return string
 
 
-class SongMeta:
-    """
-    Stores meta information about the midi song. The information is stored into events and midi pattern information
-    which includes resolution and format
-    """
-
-    def __init__(self, pattern):
-        self.key_signature_event = None
-        self.time_signature_event = None
-        self.format = pattern.format
-        self.resolution = pattern.resolution
-        self.load_signature_events(pattern)
-
-    def load_signature_events(self, pattern):
-        self.key_signature_event = MidiUtils.get_key_signature_event(pattern)
-        self.time_signature_event = MidiUtils.get_time_signature_event(pattern)
-
-
-class TranscriptTrack:
+class InstrumentTrack:
     """
     This class stores note information in sorted order by time. Each note is stored into a sound event, and
     there are sound events that can have multiple notes, meaning the sound event is a chord
@@ -148,13 +109,12 @@ class TranscriptTrack:
     IF YOU WANT THE ELEMENTS TO BE SORTED BY TIME, INSERT THE SOUND EVENTS BY TIME
     """
 
-    def __init__(self, instrument=0):
-        self.instrument = instrument
-        # used for checking whether a new added note is part of a chord or not
-        self.previous_time = 0
-        self.current_time = 0
+    def __init__(self):
         # contains notes and is sorted by time
         self._sound_events = OrderedDict()
+
+    def times(self):
+        return self._sound_events.keys()
 
     def get_sound_event(self, time):
         return self._sound_events[time]
@@ -163,39 +123,14 @@ class TranscriptTrack:
         return self._sound_events.values()
 
     def add_sound_event(self, sound_event):
-        for note in sound_event.get_notes():
-            self.add_note(note)
+        self._sound_events[sound_event.get_start_time()] = sound_event
 
     def add_note(self, note):
         """
-        Adds the note to the track and computes pauses between current and previous notes
-
-        If this note has the same time as the most previously added note, it means it is part of a chord.
-        If the note is part of a chord, then the most recent sound event object is retrieved, which adds the note
-        to its list of notes. However, if the note is not part of a chord or is the first note of a chord,
-        then a new sound event object is created
         """
-
-        # get the current sound event, if it does not exist create a new one
-        sound_event = self._sound_events.get(note.time)
-        if sound_event is None:
-            self._sound_events[note.time] = InstrumentSoundEvent()
-        sound_event = self._sound_events.get(note.time)
-        sound_event.add_note(note)
-
-        # update note pauses of the current notes and most recent notes
-        previous = self._sound_events.get(self.current_time)
-        if note.time == self.current_time:
-            previous = self._sound_events.get(self.previous_time)
-        if previous is not None:
-            pause = note.time - previous.get_start_time()
-            previous.update_pause_to_next_note(pause)
-            sound_event.update_pause_to_previous_note(pause)
-
-        # update delta times
-        if note.time != self.current_time:
-            self.previous_time = self.current_time
-            self.current_time = note.time
+        if note.start_time not in self._sound_events:
+            self._sound_events[note.start_time] = InstrumentSoundEvent()
+        self._sound_events.get(note.start_time).add_note(note)
 
     def __len__(self):
         return len(self._sound_events)
