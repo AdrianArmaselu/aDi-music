@@ -5,21 +5,34 @@ __author__ = 'Adisor'
 
 
 class PatternSchedule(object):
+    """
+    Used by the writer to convert scheduled tracks into a midi tracks
+    Contains metadata for the final midi Pattern
+    """
     def __init__(self, scheduled_tracks, meta):
         self._scheduled_tracks = scheduled_tracks
         self._meta = meta
 
     def get_scheduled_tracks(self):
+        """
+        :return: list of scheduled tracks
+        """
         return self._scheduled_tracks
 
     def get_meta_events(self):
         return [self._meta.key_signature_event, self._meta.time_signature_event]
 
     def get_resolution(self):
+        """
+        :return: midi resolution number
+        """
         return self._meta.resolution
 
 
 class AbstractEventsScheduledTrack(object):
+    """
+    Used to model time-mapped tracks that are used by the writer to convert into a midi track
+    """
     def __init__(self, channel=None):
         self.channel = channel
         self._scheduled_events = defaultdict(lambda: [])
@@ -33,9 +46,15 @@ class AbstractEventsScheduledTrack(object):
         return self.duration
 
     def get_scheduled_events(self):
+        """
+        :return: list of sound event objects
+        """
         return self._scheduled_events
 
     def sort(self):
+        """
+        :return: list of sound event objects sorted by time
+        """
         self._scheduled_events = OrderedDict(sorted(self._scheduled_events.items(), key=lambda key: key[0]))
 
     def __str__(self):
@@ -47,14 +66,7 @@ class AbstractEventsScheduledTrack(object):
 
 class NotesAndEventsScheduledTrack(AbstractEventsScheduledTrack):
     """
-    The algorithm works as follows:
-    1. Initialize the "start" variable to 0. It will be used to keep track when the next SoundEvent object starts
-    2. Loop through each SoundEvent object s of sequence seq
-    3. Loop through each note n of s
-    4. Schedule when n starts playing based on the start variable.
-    5. Schedule when n stops playing based on the start variable + duration_ticks of the note
-    6. End loop of s
-    7. Update the start variable by the duration of the shortest note of s
+    Used to model tracks that contain mostly note events
     """
 
     def __init__(self, instrument=0, channel=0):
@@ -62,6 +74,11 @@ class NotesAndEventsScheduledTrack(AbstractEventsScheduledTrack):
         self._scheduled_events[0] = [MidiUtils.to_program_change_event(instrument)]
 
     def schedule_note(self, note, start):
+        """
+        Converts the note into a midi note_on event and schedules its start at the start time and end after its duration
+        :param note: Note object
+        :param start: start time of the note
+        """
         self.schedule_event(MidiUtils.to_note_on_event(note, self.channel), start)
         self.schedule_event(MidiUtils.to_note_off_event(note, self.channel), start + note.duration)
 

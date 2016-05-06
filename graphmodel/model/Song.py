@@ -19,6 +19,9 @@ class SongTranscript(object):
         self.instrument_tracks = defaultdict(lambda: None)
 
     def get_tempo_events(self):
+        """
+        :return: list of tempo events
+        """
         return self.get_tempo_dict().values()
 
     def get_tempo_dict(self):
@@ -28,6 +31,11 @@ class SongTranscript(object):
         self._transcript_meta = transcript_meta
 
     def set_track(self, instrument, track):
+        """
+        Sets the track for the specified instrument
+        :param instrument: midi instrument number
+        :param track: instrument track
+        """
         self.instrument_tracks[instrument] = track
 
     def add_track(self, instrument, track):
@@ -81,12 +89,18 @@ class SongTranscript(object):
             to_track.add_note(note)
 
     def get_instruments(self):
+        """
+        :return: list of instrument numbers
+        """
         return self.instrument_tracks.keys()
 
     def get_track(self, instrument):
         return self.instrument_tracks[instrument]
 
     def get_tracks(self):
+        """
+        :return: list of tracks
+        """
         return self.instrument_tracks.values()
 
     def get_transcript_meta(self):
@@ -99,7 +113,7 @@ class SongTranscript(object):
         return string
 
 
-class InstrumentTrack:
+class InstrumentTrack(object):
     """
     This class stores note information in sorted order by time. Each note is stored into a sound event, and
     there are sound events that can have multiple notes, meaning the sound event is a chord
@@ -110,16 +124,25 @@ class InstrumentTrack:
     """
 
     def __init__(self):
-        # contains notes and is sorted by time
         self._sound_events = OrderedDict()
 
     def times(self):
+        """
+        :return: list of numbers which represent absolute times for each played note
+        """
         return self._sound_events.keys()
 
     def get_sound_event(self, time):
+        """
+        :param time: integer time
+        :return: the sound event that starts at time
+        """
         return self._sound_events[time]
 
     def get_sound_events(self):
+        """
+        :return: list of sound events
+        """
         return self._sound_events.values()
 
     def add_sound_event(self, sound_event):
@@ -127,6 +150,8 @@ class InstrumentTrack:
 
     def add_note(self, note):
         """
+        Adds a note to the current sound event, and if there is no sound event at the note start time,
+        a new sound event is created
         """
         if note.start_time not in self._sound_events:
             self._sound_events[note.start_time] = InstrumentSoundEvent()

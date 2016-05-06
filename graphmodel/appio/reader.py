@@ -1,6 +1,5 @@
 import midi
-# import pygame
-from graphmodel import defaults
+import pygame
 
 from graphmodel.appio import applogger
 from graphmodel.appio.preprocessing import Analyzer
@@ -36,6 +35,11 @@ def load_transcript(midi_file_name):
 
 
 def play_music(midi_file_name):
+    """
+    Loads and plays the midi music from the file
+    :param midi_file_name: String path
+    :return: plays the music
+    """
     # play the music
     pygame.init()
     pygame.mixer.music.load(midi_file_name)
@@ -46,7 +50,7 @@ def play_music(midi_file_name):
         pygame.time.wait(1000)
 
 
-class TranscriptLoader:
+class TranscriptLoader(object):
     """
     Reads the data from the midi file notes and loads it into a transcript
 
@@ -70,6 +74,7 @@ class TranscriptLoader:
 
     def load_meta(self):
         """
+        Loads the metadata from the file into the transcript meta object which is then passed to the transcript object
         """
         transcript_meta = TranscriptMeta(midiformat=self.pattern.format, resolution=self.pattern.resolution)
         start_time = 0
@@ -85,6 +90,8 @@ class TranscriptLoader:
 
     def load_tracks(self):
         """
+        Loops through each track after the meta track (the first one), and checks to see if there are any
+        notes in the track, and if there are, it proceeds forward to load them.
         """
         for track_index in range(1, len(self.pattern), 1):
             if MidiUtils.has_notes(self.pattern[track_index]):
@@ -96,11 +103,8 @@ class TranscriptLoader:
 
         Loops sequentially through each event and does the following:
         1. Update the current time from the event
-        2. Update the context from the global context at the current time
-        3. If the current event is a meta event, then update the current context
-        4. If the event is a note on event, then create a new note with the current context, add it to the timed track
-            and keep track of it
-        5. If the event is an end note event, then compute its duration
+        2. If the event is a note on event, then create a new note and add it to the track
+        3. If the event is a note off event, then compute its duration
         """
         present_time = 0
         on_notes = {}

@@ -42,14 +42,26 @@ class _SingleInstrumentNGram(object):
             self.build_from_track(track, music_transcript.get_tempo_dict())
 
     def build_from_track(self, track, tempo_dict):
+        """
+        Updates the ngram with the data from the track
+
+        The ngram is updated by creating frames from the sequences of notes and updating their statistical data
+
+        The tempo_dict parameter is used in constructing frame components
+        :param track: instrument track
+        :param tempo_dict: a dict that maps tempo events to times
+        :return: updated ngram
+        """
         times = track.times()
+        # used to construct the frames
         frames = OrderedFrames(self.frame_size)
+        # used to set the tempo of each frame component
         tempo_event_iterator = DictIterator(tempo_dict)
         for time_index in range(0, len(times), 1):
             start_time = times[time_index]
             tempo_event = None
             if not tempo_event_iterator.is_empty():
-                # update tempo iterator
+                # update tempo iterator so that we get the most recent tempo event
                 while tempo_event_iterator.has_next() and tempo_event_iterator.current_key() < start_time:
                     tempo_event_iterator.go_next()
                 if tempo_event_iterator.has_previous() and tempo_event_iterator.current_key() > start_time:
@@ -78,6 +90,9 @@ class _SingleInstrumentNGram(object):
                 self.frame_distribution[frame].count += 1
 
     def sort_and_index(self):
+        """
+        :return: sort frames and indexes them for faster generation
+        """
         self.indexer.index_frames()
 
     def get_first_frame(self):
@@ -88,6 +103,10 @@ class _SingleInstrumentNGram(object):
         return self.frame_distribution.keys()[index]
 
     def get_next_best_frame(self, sound_event):
+        """
+        :param sound_event: represents context information from last frame
+        :return: the next best frame based on the indexer evaluation function
+        """
         return self.indexer.get_best_frame(sound_event)
 
     def __str__(self):
@@ -97,13 +116,18 @@ class _SingleInstrumentNGram(object):
         return string
 
 
-class SoundEventFrameIndexer:
+class SoundEventFrameIndexer(object):
     def __init__(self, frame_dict):
+        # maps statistical data to frames
         self.frame_dict = frame_dict
         # maps frames to the sound events that are first in the frame
         self.first_sound_event_frames = defaultdict(lambda: [])
 
     def index_frames(self):
+        """
+        Maps the frames that have s as their starting sound event to s
+        The mapped frames are sorted based on the evaluation function of the statistical data object
+        """
         for item in self.frame_dict.items():
             self.index_frame_dict_item(item)
         for sound_event in self.first_sound_event_frames:
@@ -111,6 +135,10 @@ class SoundEventFrameIndexer:
                                                                 key=operator.itemgetter(1))
 
     def index_frame_dict_item(self, item):
+        """
+        Maps the frame from the item to the sound event which is its start
+        :param item: dict key,value pair
+        """
         (frame, data) = item
         self.first_sound_event_frames[frame.first()].append(item)
 
@@ -124,9 +152,9 @@ class SoundEventFrameIndexer:
         return None
 
 
-class MultiInstrumentNGram:
+class MultiInstrumentNGram(object):
     """
-    Builds ngram for each channel
+    Builds ngram for each instrument
     """
 
     def __init__(self, nsize=0):
@@ -144,13 +172,17 @@ class MultiInstrumentNGram:
         self.instrument_ngrams[instrument].build_from_track(track, tempo_dict)
         self.instrument_ngrams[instrument].sort_and_index()
 
-    def get_channels(self):
-        return self.instrument_ngrams.keys()
-
-    def get_ngram(self, channel):
-        return self.instrument_ngrams[channel]
+    def get_ngram(self, instrument):
+        """
+        :param instrument: instrument number
+        :return: the ngram object
+        """
+        return self.instrument_ngrams[instrument]
 
     def get_instruments(self):
+        """
+        :return: list of instrument integers
+        """
         return self.instrument_ngrams.keys()
 
 
@@ -162,7 +194,9 @@ class OrderedFrames(object):
     """
 
     def __init__(self, frame_size):
+        # corresponds to the nsize of the ngram
         self.frame_size = frame_size
+        # list of consecutive frames
         self.frames = []
 
     def add(self, frame_component):
@@ -189,7 +223,7 @@ class OrderedFrames(object):
 
 class Frame(object):
     """
-    Object that encapsulates a tuple of SoundEvent objects
+    Object that encapsulates a tuple of Frame Components, and represents a progression of notes
     """
 
     def __init__(self, max_size=0):
@@ -198,6 +232,9 @@ class Frame(object):
         self.hash = None
 
     def get_components(self):
+        """
+        :return: the tuple of frame components
+        """
         return self.components
 
     def add(self, frame_component):
@@ -234,6 +271,9 @@ class Frame(object):
 
 
 class FrameComponent(object):
+    """
+    Encapsulates the sound event object and data regarding timing
+    """
     def __init__(self, sound_event, tempo_event=None, pause_to_next_event=0, pause_to_previous_event=0):
         self.sound_event = sound_event
         self.tempo_event = tempo_event
@@ -261,8 +301,16 @@ class FrameComponent(object):
 
 
 class FrameStatisticalData(object):
+    """
+    Encapsulates statistical data about its respective frame
+
+    It is crucial in the generation process as next frames are selected based on the comparison
+    algorithm of this class
+    """
     def __init__(self):
+        # number of times the frame associated with this data has appeared before
         self.count = 0
+        # indicates how many events have elapsed since this frame has been selected by the generator
         self.last_played_elapsed = 0
 
     def __cmp__(self, other):

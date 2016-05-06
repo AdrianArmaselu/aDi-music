@@ -5,7 +5,7 @@ from graphmodel.utils import MidiUtils
 __author__ = 'Adisor'
 
 
-class Analyzer:
+class Analyzer(object):
     """
     Class is used for analyzing, input curation, validation, and pre-processing a midi file before execution.
     With this class, we can capture events that are not being processed or midi patterns that break our

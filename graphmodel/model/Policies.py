@@ -1,7 +1,7 @@
 __author__ = 'Adisor'
 
 
-class FrameSelectionPolicy:
+class FrameSelectionPolicy(object):
     def __init__(self):
         pass
 

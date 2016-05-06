@@ -5,7 +5,7 @@ import midi
 from graphmodel.NGram import MultiInstrumentNGram
 
 from graphmodel.appio import reader
-from graphmodel.appio.scheduling import AbstractEventsScheduledTrack, NotesAndEventsScheduledTrack, PatternSchedule
+from graphmodel.appio.scheduler import AbstractEventsScheduledTrack, NotesAndEventsScheduledTrack, PatternSchedule
 from graphmodel.appio.writer import MidiFileWriter
 from graphmodel.model import Policies
 from graphmodel.model.Policies import FrameSelectionPolicy
@@ -28,6 +28,7 @@ class SingleInstrumentGenerator(object):
 
     def generate(self, instrument, channel):
         """
+        Generates a scheduled track by selecting best frames and scheduling their sound events on the track
         """
         scheduler = TrackScheduler(meta_track=self.meta_track, instrument=instrument, channel=channel)
         frame = self.ngram.get_first_frame()
@@ -82,12 +83,20 @@ class SingleInstrumentGenerator(object):
 
 # TODO: TEMPOS SHOULD BE UNIQUE AND CAN ONLY HAVE ONE AT A TIME NOT TWO( which happens when taking notes further in the track)
 class TrackScheduler(object):
+    """
+    Schedules notes and tempo events into a track
+    """
     def __init__(self, meta_track, instrument=0, channel=0):
         self.meta_track = meta_track
         self.time = 0
         self.scheduled_track = NotesAndEventsScheduledTrack(instrument=instrument, channel=channel)
 
     def schedule_frame_components(self, components):
+        """
+        Schedules the notes and tempo events from each component in the list of components
+        :param components: list of components from the frame
+        :return:
+        """
         for component in components:
             sound_event = component.get_sound_event()
             # add tempo and other events
@@ -104,6 +113,12 @@ class TrackScheduler(object):
 
 
 def generate_multi_instrument_tracks(multi_instrument_ngram, duration):
+    """
+    Generates a track for each instrument
+    :param multi_instrument_ngram: ngram object
+    :param duration: ticks
+    :return: list of scheduled tracks
+    """
     instruments = multi_instrument_ngram.get_instruments()
     meta_track = AbstractEventsScheduledTrack()
     # scheduled_tracks = [meta_track]

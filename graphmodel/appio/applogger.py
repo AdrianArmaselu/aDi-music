@@ -2,6 +2,10 @@ import logging
 
 __author__ = 'Adisor'
 
+"""
+This file is used to configure logging and to give the configured logging object to the rest of the application
+"""
+
 
 def clear_log_file(logfile):
     with open(logfile, 'w'):

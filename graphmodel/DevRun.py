@@ -3,7 +3,7 @@ from graphmodel import Generator
 from graphmodel.NGram import MultiInstrumentNGram
 
 from graphmodel.appio import reader, applogger
-from graphmodel.appio.scheduling import PatternSchedule
+from graphmodel.appio.scheduler import PatternSchedule
 from graphmodel.appio.writer import MidiFileWriter
 
 __author__ = 'Adisor'
