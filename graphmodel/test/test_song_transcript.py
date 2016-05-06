@@ -5,7 +5,7 @@ from graphmodel.appio import reader
 class SongTranscriptTest(unittest.TestCase):
 
   def setUp(self):
-    file1 = 'music/mary.mid' 
+    file1 = '../music/mary.mid' 
     self.transcript = reader.load_transcript(file1)
 
   def test_metadata(self):
