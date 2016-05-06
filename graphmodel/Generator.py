@@ -126,9 +126,18 @@ USE DISTRIBUTED SOUND EVENT
 """
 
 
-def generate(input_file, ticks, folder='default', nsize=2):
+def generate(input_file, ticks, folder='default', nsize=2, policy='random'):
     # properties that should be on the website:
-    Policies.frame_selection_policy = FrameSelectionPolicy.HIGHEST_COUNT
+    if policy == 'random':
+        Policies.frame_selection_policy = FrameSelectionPolicy.RANDOM
+    elif policy == 'highest':
+        Policies.frame_selection_policy = FrameSelectionPolicy.HIGHEST_COUNT
+    elif policy == 'prob':
+        Policies.frame_selection_policy = FrameSelectionPolicy.PROB
+    elif policy == 'experimental':
+        Policies.frame_selection_policy = FrameSelectionPolicy.EXPERIMENTAL
+    else:
+        Policies.frame_selection_policy = FrameSelectionPolicy.RANDOM
 
     # generation code
     name = input_file.split('.')[0]

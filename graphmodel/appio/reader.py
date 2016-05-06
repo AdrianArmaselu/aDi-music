@@ -1,5 +1,5 @@
 import midi
-import pygame
+# import pygame
 from graphmodel import defaults
 
 from graphmodel.appio import applogger

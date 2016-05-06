@@ -34,13 +34,15 @@ def upload_file():
 
     if request.method == 'POST':
         upload_files = request.files.getlist("file[]")
-        nsize = request.form['nsize']
+        ticks = int(request.form['ticks'])
+        nsize = int(request.form['nsize'])
+        policy = request.form['policy']
         for f in upload_files:
             if f and allowed_file(f.filename):
                 filename = secure_filename(f.filename)
                 destination = os.path.join(upload_folder, filename)
                 f.save(destination)
-                Generator.generate(filename, 3000, folder=upload_folder, nsize=nsize)
+                Generator.generate(filename, ticks, folder=upload_folder, nsize=nsize, policy=policy)
         return redirect(url_for('upload_file'))
 
     songs = os.listdir(upload_folder)

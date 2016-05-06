@@ -2,7 +2,7 @@
 {% block play %}
 <div class="text-center">
     <section id="step1" >
-        <h2 class="light-green">Step1: Upload Songs in Midi Format, Select a Genre if You Want</h2><br>
+        <h2 class="light-green">Step1: Upload Songs in Midi Format</h2><br>
         <h3>Songs</h3>
         <ul>
             <script type='text/javascript'>
@@ -52,11 +52,29 @@
             <fieldset>
                 <div class="form-group">
                     <br>
+                    <label>Number of Ticks:</label>
+                    <input type="text" name="ticks">
+                    <br>
+                    <br>
+                    <label>NGram Size:</label>
+                    <input type="text" name="nsize">
+                    <br>
+                    <br>
+                    <label>Generation Policy:</label>
+                    <select name="policy">
+                      <option value="random">Random</option>
+                      <option value="highest">Highest Count</option>
+                      <option value="prob">Probability</option>
+                      <option value="experimental">Experimental</option>
+                    </select>
+                    <br>
+                    <br>
                     <span class="btn btn-default btn-file">Browse <input type="file" multiple name="file[]"></span>
                     <button class="btn btn-primary" type=submit value=Upload >Upload</button>
                 </div>
             </fieldset>
         </form>
+        <!--
         <h3>Genre</h3>
         <button class="btn btn-primary" >Hip Hop</button>
         <button class="btn btn-primary" >Pop</button>
@@ -66,9 +84,10 @@
         <button class="btn btn-primary" >Blues</button>
         <button class="btn btn-primary" >Rock</button>
         <br><br>
-        <a href="#step2"><button class="btn btn-primary btn-next" >Next</button></a>
+        <a href="#step2"><button class="btn btn-primary btn-next" >Next</button></a>-->
+        <img src="/static/img/sebastian.jpg" class="seb-img" alt="Sebastian is happy you are here" width="25%" height="25%">
     </section>
-
+<!--
     <section id="step2" >
         <h2 class="light-green">Step2: Generate a New Song Based on Selected Songs/Genre</h2>
         <a><button class="btn btn-primary">Generate</button></a>
@@ -84,8 +103,8 @@
         <h2 class="light-green">Step3: Try It Out!</h2>
          <a href="#" onClick="MIDIjs.play('/static/output/output.mid');"><button class="btn btn-primary" >Play</button></a>
          <a href="#" onClick="MIDIjs.stop();"><button class="btn btn-primary" >Stop</button></a><br>
-        <img src="/static/img/sebastian.jpg" class="seb-img" alt="Sebastian is happy you are here" width="25%" height="25%">
     </section>
+    -->
 </div>
 {% endblock %}
 
