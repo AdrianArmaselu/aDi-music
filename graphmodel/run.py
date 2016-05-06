@@ -1,11 +1,13 @@
 from __future__ import print_function  # In python 2.7
 import os, sys
+sys.path.append('/home/ubuntu/sebastian')
 from flask import Flask, request, redirect, url_for, json, make_response, request
 from flask import send_from_directory
 from flask import render_template
 from werkzeug import secure_filename
 import random, string
 import Generator
+
 
 UPLOAD_FOLDER_PREFIX = 'static/files/{}'
 ALLOWED_EXTENSIONS = set(['mid'])
@@ -32,12 +34,13 @@ def upload_file():
 
     if request.method == 'POST':
         upload_files = request.files.getlist("file[]")
+        nsize = request.form['nsize']
         for f in upload_files:
             if f and allowed_file(f.filename):
                 filename = secure_filename(f.filename)
                 destination = os.path.join(upload_folder, filename)
                 f.save(destination)
-                Generator.generate(filename, 3000, upload_folder)
+                Generator.generate(filename, 3000, folder=upload_folder, nsize=nsize)
         return redirect(url_for('upload_file'))
 
     songs = os.listdir(upload_folder)
@@ -80,4 +83,4 @@ def uploaded_file(filename):
 
 if __name__ == '__main__':
     # app.run(debug=True)
-    app.run()
+    app.run(port=5001)

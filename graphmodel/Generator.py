@@ -4,9 +4,9 @@ from random import randint
 import midi
 from graphmodel.NGram import MultiInstrumentNGram
 
-from graphmodel.io import reader
-from graphmodel.io.scheduling import AbstractEventsScheduledTrack, NotesAndEventsScheduledTrack, PatternSchedule
-from graphmodel.io.writer import MidiFileWriter
+from graphmodel.appio import reader
+from graphmodel.appio.scheduling import AbstractEventsScheduledTrack, NotesAndEventsScheduledTrack, PatternSchedule
+from graphmodel.appio.writer import MidiFileWriter
 from graphmodel.model import Policies
 from graphmodel.model.Policies import FrameSelectionPolicy
 
@@ -126,9 +126,8 @@ USE DISTRIBUTED SOUND EVENT
 """
 
 
-def generate(input_file, ticks, folder='default'):
+def generate(input_file, ticks, folder='default', nsize=2):
     # properties that should be on the website:
-    nsize = 2
     Policies.frame_selection_policy = FrameSelectionPolicy.HIGHEST_COUNT
 
     # generation code

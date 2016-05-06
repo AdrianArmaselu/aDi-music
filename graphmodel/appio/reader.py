@@ -2,8 +2,8 @@ import midi
 import pygame
 from graphmodel import defaults
 
-from graphmodel.io import applogger
-from graphmodel.io.preprocessing import Analyzer
+from graphmodel.appio import applogger
+from graphmodel.appio.preprocessing import Analyzer
 from graphmodel.model import instruments
 from graphmodel.model.Meta import TranscriptMeta
 from graphmodel.model.Song import SongTranscript, InstrumentTrack

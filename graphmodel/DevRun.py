@@ -2,9 +2,9 @@ from os import listdir
 from graphmodel import Generator
 from graphmodel.NGram import MultiInstrumentNGram
 
-from graphmodel.io import reader, applogger
-from graphmodel.io.scheduling import PatternSchedule
-from graphmodel.io.writer import MidiFileWriter
+from graphmodel.appio import reader, applogger
+from graphmodel.appio.scheduling import PatternSchedule
+from graphmodel.appio.writer import MidiFileWriter
 
 __author__ = 'Adisor'
 

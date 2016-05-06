@@ -1,7 +1,7 @@
 import midi
 from midi import events
 from graphmodel import defaults
-from graphmodel.io import applogger
+from graphmodel.appio import applogger
 
 __author__ = 'Adisor'
 
