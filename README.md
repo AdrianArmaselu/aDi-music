@@ -1,2 +1,2 @@
-# cs4375-apt3338-da-vinci-sebastian-renaissance-vivien
-name pending
+# aDi-music
+NGram approach to generating MIDI music
