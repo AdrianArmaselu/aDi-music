@@ -71,7 +71,7 @@ boxes/*
 /vagrant-spec.config.rb
 
 #Idea
-/.idea
+.idea/
 #Venv
 *venv/
 
